@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { useRef, useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 
 const containerVariants = {
   hidden: {},
@@ -164,27 +165,21 @@ export default function HeroSection() {
               className="absolute w-[42%] h-[42%] rounded-full border border-[#B6FF33]/20"
             />
 
-            {/* Main glass card */}
+            {/* Main Image */}
             <motion.div
-              initial={{ rotate: 6, y: 60, opacity: 0 }}
-              animate={{ rotate: 6, y: 0, opacity: 1 }}
-              whileHover={{ rotate: 0, scale: 1.04, transition: { duration: 0.5 } }}
+              initial={{ y: 60, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              whileHover={{ scale: 1.04, transition: { duration: 0.5 } }}
               transition={{ duration: 1, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.5 }}
-              className="glass-card w-64 h-80 rounded-2xl flex flex-col items-center justify-center p-8 shadow-[0_25px_60px_rgba(0,0,0,0.6)] z-10 cursor-pointer"
+              className="relative w-[80%] h-[80%] z-10 cursor-pointer"
             >
-              <span className="material-symbols-outlined text-6xl text-[#B6FF33] mb-6">hub</span>
-              <div className="space-y-3 text-center w-full">
-                <div className="h-1.5 w-24 bg-[#B6FF33]/20 rounded-full mx-auto overflow-hidden">
-                  <motion.div
-                    initial={{ width: '0%' }}
-                    animate={{ width: '66%' }}
-                    transition={{ duration: 2, delay: 1.5, ease: 'easeOut' }}
-                    className="h-full bg-[#B6FF33] rounded-full shadow-[0_0_8px_#B6FF33]"
-                  />
-                </div>
-                <p className="text-[10px] uppercase tracking-widest text-[#B6FF33] font-bold font-headline">Integration Alpha</p>
-                <div className="h-1 w-16 bg-white/5 rounded-full mx-auto" />
-              </div>
+              <Image
+                src="/photos/Visual Elements-02.png"
+                alt="Main Visual"
+                fill
+                className="object-contain drop-shadow-[0_25px_60px_rgba(0,0,0,0.6)]"
+                priority
+              />
             </motion.div>
 
             {/* Floating badge — top right */}
