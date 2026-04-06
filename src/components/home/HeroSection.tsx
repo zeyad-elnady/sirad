@@ -169,9 +169,9 @@ export default function HeroSection() {
             <motion.div
               initial={{ y: 60, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              whileHover={{ scale: 1.04, transition: { duration: 0.5 } }}
+              whileHover={{ scale: 1.05, transition: { duration: 0.5 } }}
               transition={{ duration: 1, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.5 }}
-              className="relative w-[80%] h-[80%] z-10 cursor-pointer"
+              className="relative w-[130%] h-[130%] z-10 cursor-pointer"
             >
               <Image
                 src="/photos/Visual Elements-02.png"
