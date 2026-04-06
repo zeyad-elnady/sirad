@@ -4,6 +4,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { usePathname, useRouter, Link } from '@/i18n/routing';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 
 export default function Header() {
   const t = useTranslations('Header');
@@ -24,9 +25,15 @@ export default function Header() {
   return (
     <nav className="fixed top-0 z-50 w-full bg-[#131313]/80 backdrop-blur-xl shadow-[0_0_40px_rgba(182,255,51,0.15)]">
       <div className="max-w-screen-2xl mx-auto flex justify-between items-center w-full px-8 py-6">
-        <div className="text-2xl font-black tracking-tighter text-[#e5e2e1] uppercase">
-          Sirad
-        </div>
+        <Link href="/" className="relative w-32 h-10 flex shrink-0">
+          <Image
+            src="/logo-.png"
+            alt="Sirad"
+            fill
+            className="object-contain object-left"
+            priority
+          />
+        </Link>
         <div className="hidden md:flex items-center gap-12">
           <Link 
             href="/" 
