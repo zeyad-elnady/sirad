@@ -25,7 +25,7 @@ export default function Header() {
   return (
     <nav className="fixed top-0 z-50 w-full bg-[#131313]/80 backdrop-blur-xl shadow-[0_0_40px_rgba(182,255,51,0.15)]">
       <div className="max-w-screen-2xl mx-auto flex justify-between items-center w-full px-8 py-6">
-        <Link href="/" className="relative w-32 h-10 flex shrink-0">
+        <Link href="/" className="relative w-48 h-12 flex shrink-0">
           <Image
             src="/logo-.png"
             alt="Sirad"
