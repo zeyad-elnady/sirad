@@ -104,21 +104,21 @@ export default function Services() {
               </div>
 
               {/* Lime top-edge glow on hover */}
-              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#B6FF33] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#B6FF33] to-transparent opacity-0 md:group-hover:opacity-100 transition-opacity duration-700" />
 
               {/* Icon */}
-              <span className="material-symbols-outlined text-[#B6FF33] text-4xl mb-8 block group-hover:scale-110 group-hover:[text-shadow:0_0_15px_rgba(182,255,51,0.6)] transition-all duration-500">
+              <span className="material-symbols-outlined text-[#B6FF33] text-4xl mb-8 block md:group-hover:scale-110 md:group-hover:[text-shadow:0_0_15px_rgba(182,255,51,0.6)] transition-all duration-500">
                 {service.icon}
               </span>
 
               {/* Content */}
               <h3 className="font-headline text-2xl font-bold mb-4 text-[#e5e2e1]">{service.title}</h3>
-              <p className="text-[#e5e2e1]/50 text-[0.95rem] mb-8 group-hover:text-[#e5e2e1]/80 transition-colors duration-500 leading-relaxed">
+              <p className="text-[#e5e2e1]/50 text-[0.95rem] mb-8 md:group-hover:text-[#e5e2e1]/80 transition-colors duration-500 leading-relaxed">
                 {service.desc}
               </p>
 
               {/* List — slides up on hover */}
-              <ul className="space-y-3 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500 text-[11px] font-label font-bold uppercase tracking-widest text-[#B6FF33]">
+              <ul className="space-y-3 opacity-100 translate-y-0 md:opacity-0 md:group-hover:opacity-100 md:translate-y-4 md:group-hover:translate-y-0 transition-all duration-500 text-[11px] font-label font-bold uppercase tracking-widest text-[#B6FF33]">
                 {service.list.map((item) => (
                   <li key={item} className="flex items-center gap-2">
                     <span className="w-1 h-1 flex-shrink-0 bg-[#B6FF33] rounded-sm" />

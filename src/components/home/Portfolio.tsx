@@ -114,24 +114,24 @@ export default function Portfolio() {
             <img
               src={project.image}
               alt={project.title}
-              className="absolute inset-0 w-full h-full object-cover grayscale opacity-40 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000 ease-out"
+              className="absolute inset-0 w-full h-full object-cover grayscale-0 opacity-70 md:grayscale md:opacity-40 md:group-hover:grayscale-0 md:group-hover:scale-105 transition-all duration-1000 ease-out"
             />
 
             {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e0e] via-[#0e0e0e]/30 to-transparent" />
 
             {/* Lime border bottom on hover */}
-            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#B6FF33] scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left rtl:origin-right shadow-[0_0_12px_#B6FF33]" />
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#B6FF33] scale-x-100 md:scale-x-0 md:group-hover:scale-x-100 transition-transform duration-700 origin-left rtl:origin-right shadow-[0_0_12px_#B6FF33]" />
 
             {/* Content */}
             <div className="absolute bottom-0 left-0 right-0 p-8 md:p-10">
               <p className="font-label font-bold text-[10px] uppercase tracking-[0.2em] text-[#B6FF33] mb-2">
                 {project.category}
               </p>
-              <h3 className="font-headline font-bold text-3xl text-[#e5e2e1] mb-4 group-hover:translate-x-2 rtl:group-hover:-translate-x-2 rtl:group-hover:translate-x-0 transition-transform duration-500">
+              <h3 className="font-headline font-bold text-3xl text-[#e5e2e1] mb-4 md:group-hover:translate-x-2 rtl:md:group-hover:-translate-x-2 rtl:md:group-hover:translate-x-0 transition-transform duration-500">
                 {project.title}
               </h3>
-              <div className="flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+              <div className="flex items-center gap-4 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-700">
                 {project.tags.map((tag) => (
                   <span key={tag} className="font-label text-[11px] text-[#e5e2e1]/50 uppercase tracking-wider">
                     {tag}
@@ -142,8 +142,8 @@ export default function Portfolio() {
 
             {/* Arrow button top-right */}
             <motion.div
-              initial={{ opacity: 0, rotate: 0 }}
-              className="absolute top-8 right-8 rtl:left-8 rtl:right-auto w-12 h-12 rounded-full border border-white/20 flex items-center justify-center backdrop-blur-md opacity-0 group-hover:opacity-100 group-hover:rotate-45 transition-all duration-500 bg-black/20"
+              initial={{ opacity: 1, rotate: 0 }}
+              className="absolute top-8 right-8 rtl:left-8 rtl:right-auto w-12 h-12 rounded-full border border-white/20 flex items-center justify-center backdrop-blur-md opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-hover:rotate-45 transition-all duration-500 bg-black/20"
             >
               <span className="material-symbols-outlined text-white text-base">arrow_outward</span>
             </motion.div>
