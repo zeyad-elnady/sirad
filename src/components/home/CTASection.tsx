@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
+import { Link } from '@/i18n/routing';
 
 export default function CTASection() {
   const t = useTranslations('CTA');
@@ -78,14 +79,14 @@ export default function CTASection() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.3 }}
             >
-              <button className="group relative overflow-hidden bg-[#B6FF33] text-[#121f00] px-14 py-6 rounded-full font-headline font-black uppercase tracking-[0.2em] text-sm hover:shadow-[0_0_60px_rgba(182,255,51,0.65)] transition-all duration-500 active:scale-95 inline-flex items-center gap-3">
+              <Link href="/contact" className="group relative overflow-hidden bg-[#B6FF33] text-[#121f00] px-14 py-6 rounded-full font-headline font-black uppercase tracking-[0.2em] text-sm hover:shadow-[0_0_60px_rgba(182,255,51,0.65)] transition-all duration-500 active:scale-95 inline-flex items-center gap-3">
                 <span className="relative z-10">{t('start')}</span>
                 <span className="material-symbols-outlined text-base relative z-10 group-hover:translate-x-1 transition-transform">
                   arrow_forward
                 </span>
                 {/* Shimmer sweep */}
                 <span className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-12" />
-              </button>
+              </Link>
             </motion.div>
           </div>
         </motion.div>

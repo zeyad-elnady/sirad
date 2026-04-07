@@ -24,13 +24,14 @@ export default function Header() {
 
   return (
     <nav className="fixed top-0 z-50 w-full bg-[#131313]/80 backdrop-blur-xl shadow-[0_0_40px_rgba(182,255,51,0.15)]">
-      <div className="max-w-screen-2xl mx-auto flex justify-between items-center w-full px-8 py-6">
-        <Link href="/" className="relative w-48 h-12 flex shrink-0">
+      <div className="max-w-screen-2xl mx-auto flex justify-between items-center w-full px-6 md:px-8 py-4">
+        <Link href="/" className="relative w-28 sm:w-36 md:w-56 h-12 md:h-16 flex items-center shrink-0">
           <Image
             src="/logo-.png"
             alt="Sirad"
             fill
-            className="object-contain object-left"
+            className="pointer-events-none"
+            style={{ objectFit: 'contain', objectPosition: 'left center', transform: 'scale(1.8)', transformOrigin: 'left center' }}
             priority
           />
         </Link>
@@ -66,27 +67,28 @@ export default function Header() {
             {t('contact')}
           </Link>
         </div>
-        <div className="flex items-center gap-4 md:gap-6">
+        <div className="flex items-center gap-3 md:gap-6 shrink-0">
           <span 
             onClick={handleLanguageSwitch}
             className="text-[#e5e2e1]/60 font-headline text-[10px] tracking-[0.1em] uppercase cursor-pointer transition-colors"
           >
             <span className={locale === 'en' ? 'text-[#B6FF33]' : 'hover:text-[#B6FF33]'}>EN</span>
-            <span className="mx-1 md:mx-2">|</span>
+            <span className="mx-0.5 sm:mx-1 md:mx-2">|</span>
             <span className={locale === 'ar' ? 'text-[#B6FF33]' : 'hover:text-[#B6FF33]'}>AR</span>
           </span>
-          <button className="hidden md:block bg-[#B6FF33] text-[#121f00] px-6 py-2.5 rounded-xl font-headline text-[10px] tracking-[0.1em] uppercase font-bold hover:shadow-[0_0_20px_rgba(182,255,51,0.4)] transition-all duration-300 active:scale-95">
+          <Link href="/contact" className="hidden md:block bg-[#B6FF33] text-[#121f00] px-6 py-2.5 rounded-xl font-headline text-[10px] tracking-[0.1em] uppercase font-bold hover:shadow-[0_0_20px_rgba(182,255,51,0.4)] transition-all duration-300 active:scale-95 text-center">
             {t('getQuote')}
-          </button>
+          </Link>
           
           {/* Mobile Menu Toggle */}
           <button 
-            className="md:hidden flex flex-col justify-center items-center w-8 h-8 space-y-1.5 z-50 relative"
+            className="md:hidden flex flex-col justify-center items-center w-10 h-10 space-y-1.5 z-50 relative rounded-full border border-white/10 bg-white/5 active:scale-95 transition-transform"
+            aria-label="Toggle Menu"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
-            <span className={`w-6 h-0.5 bg-[#e5e2e1] transition-all duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`} />
-            <span className={`w-6 h-0.5 bg-[#e5e2e1] transition-all duration-300 ${isMobileMenuOpen ? 'opacity-0' : ''}`} />
-            <span className={`w-6 h-0.5 bg-[#e5e2e1] transition-all duration-300 ${isMobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+            <span className={`w-5 h-0.5 bg-[#B6FF33] transition-all duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-[8px]' : ''}`} />
+            <span className={`w-5 h-0.5 bg-[#B6FF33] transition-all duration-300 ${isMobileMenuOpen ? 'opacity-0' : ''}`} />
+            <span className={`w-5 h-0.5 bg-[#B6FF33] transition-all duration-300 ${isMobileMenuOpen ? '-rotate-45 translate-y-[-8px]' : ''}`} />
           </button>
         </div>
       </div>
@@ -116,9 +118,9 @@ export default function Header() {
               {t('contact')}
             </Link>
             
-            <button className="bg-[#B6FF33] text-[#121f00] px-6 py-4 rounded-xl font-headline text-sm tracking-[0.1em] uppercase font-bold mt-4 w-full">
+            <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)} className="bg-[#B6FF33] text-[#121f00] px-6 py-4 rounded-xl font-headline text-sm tracking-[0.1em] uppercase font-bold mt-4 w-full block text-center">
               {t('getQuote')}
-            </button>
+            </Link>
           </motion.div>
         )}
       </AnimatePresence>

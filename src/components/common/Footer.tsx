@@ -1,4 +1,6 @@
 import { useTranslations } from 'next-intl';
+import Image from 'next/image';
+import { Link } from '@/i18n/routing';
 
 export default function Footer() {
   const t = useTranslations('Footer');
@@ -7,7 +9,15 @@ export default function Footer() {
     <footer className="bg-[#0e0e0e] w-full relative border-t border-white/5 mt-auto">
       <div className="max-w-screen-2xl mx-auto px-8 py-20 flex flex-col md:flex-row justify-between gap-12">
         <div className="max-w-sm space-y-6">
-          <div className="text-xl font-black text-[#e5e2e1] uppercase">Sirad</div>
+          <Link href="/" className="relative w-64 h-16 flex items-center shrink-0 block">
+            <Image
+              src="/logo-.png"
+              alt="Sirad"
+              fill
+              className="pointer-events-none"
+              style={{ objectFit: 'contain', objectPosition: 'left center', transform: 'scale(3.2)', transformOrigin: 'left center' }}
+            />
+          </Link>
           <p className="font-headline text-[#e5e2e1]/60 text-sm">
             {t('description')}
           </p>
@@ -26,20 +36,20 @@ export default function Footer() {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-12">
           <div className="space-y-6">
             <h4 className="font-headline text-[#B6FF33] text-[10px] uppercase tracking-widest font-bold">{t('solutions')}</h4>
-            <ul className="space-y-3 font-headline text-[#e5e2e1]/40 text-sm">
-              <li className="hover:text-[#B6FF33] transition-all cursor-pointer">{t('sol_dev')}</li>
-              <li className="hover:text-[#B6FF33] transition-all cursor-pointer">{t('sol_design')}</li>
-              <li className="hover:text-[#B6FF33] transition-all cursor-pointer">{t('sol_marketing')}</li>
-              <li className="hover:text-[#B6FF33] transition-all cursor-pointer">{t('sol_consultancy')}</li>
+            <ul className="space-y-3 font-headline text-[#e5e2e1]/40 text-sm flex flex-col">
+              <Link href="/services" className="hover:text-[#B6FF33] transition-all cursor-pointer w-fit">{t('sol_dev')}</Link>
+              <Link href="/services" className="hover:text-[#B6FF33] transition-all cursor-pointer w-fit">{t('sol_design')}</Link>
+              <Link href="/services" className="hover:text-[#B6FF33] transition-all cursor-pointer w-fit">{t('sol_marketing')}</Link>
+              <Link href="/services" className="hover:text-[#B6FF33] transition-all cursor-pointer w-fit">{t('sol_consultancy')}</Link>
             </ul>
           </div>
           <div className="space-y-6">
             <h4 className="font-headline text-[#B6FF33] text-[10px] uppercase tracking-widest font-bold">{t('agency')}</h4>
-            <ul className="space-y-3 font-headline text-[#e5e2e1]/40 text-sm">
-              <li className="hover:text-[#B6FF33] transition-all cursor-pointer">Work</li>
-              <li className="hover:text-[#B6FF33] transition-all cursor-pointer">About</li>
-              <li className="hover:text-[#B6FF33] transition-all cursor-pointer">Careers</li>
-              <li className="hover:text-[#B6FF33] transition-all cursor-pointer">News</li>
+            <ul className="space-y-3 font-headline text-[#e5e2e1]/40 text-sm flex flex-col">
+              <Link href="/work" className="hover:text-[#B6FF33] transition-all cursor-pointer w-fit">Work</Link>
+              <Link href="/about" className="hover:text-[#B6FF33] transition-all cursor-pointer w-fit">About</Link>
+              <li className="hover:text-[#B6FF33] transition-all cursor-pointer w-fit">Careers</li>
+              <li className="hover:text-[#B6FF33] transition-all cursor-pointer w-fit">News</li>
             </ul>
           </div>
           <div className="space-y-6 hidden sm:block">

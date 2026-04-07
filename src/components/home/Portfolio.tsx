@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import FadeIn from '@/components/common/FadeIn';
 import { useRef } from 'react';
+import { Link } from '@/i18n/routing';
 
 const projects = [
   {
@@ -87,10 +88,10 @@ export default function Portfolio() {
             </FadeIn>
 
             <FadeIn direction="right" delay={0.2}>
-              <button className="hidden md:flex items-center gap-2 font-headline font-bold uppercase tracking-widest text-xs text-[#B6FF33] hover:gap-4 transition-all duration-300 group">
+              <Link href="/work" className="hidden md:flex items-center gap-2 font-headline font-bold uppercase tracking-widest text-xs text-[#B6FF33] hover:gap-4 transition-all duration-300 group cursor-pointer inline-flex">
                 {t('viewAll')}
                 <span className="material-symbols-outlined text-base rtl:rotate-180 group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform">arrow_right_alt</span>
-              </button>
+              </Link>
             </FadeIn>
           </div>
         </div>

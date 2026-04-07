@@ -3,6 +3,7 @@ import Footer from '@/components/common/Footer';
 import HeroSection from '@/components/home/HeroSection';
 import Services from '@/components/home/Services';
 import Portfolio from '@/components/home/Portfolio';
+import Testimonials from '@/components/home/Testimonials';
 import CTASection from '@/components/home/CTASection';
 
 export default function HomePage() {
@@ -13,6 +14,7 @@ export default function HomePage() {
         <HeroSection />
         <Services />
         <Portfolio />
+        <Testimonials />
         <CTASection />
       </main>
       <Footer />

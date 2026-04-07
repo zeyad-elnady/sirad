@@ -48,6 +48,25 @@
     "title": "Selected Works",
     "viewAll": "View All Projects"
   },
+  "Testimonials": {
+    "badge": "Client Feedback",
+    "title": "Client Success Stories",
+    "review1": "Sirad transformed our entire digital presence. Their attention to pixel-perfect detail and deep understanding of our brand was incredible.",
+    "client1": "Sarah Jenkins",
+    "role1": "CMO, Nexus Tech",
+    "review2": "The most professional agency we've ever partnered with. The ROI from their marketing campaigns exceeded our highest projections.",
+    "client2": "Omar T.",
+    "role2": "Founder & CEO, Velocity",
+    "review3": "A phenomenal team. They didn't just build us a stunning mobile app; they reimagined our entire user experience from the ground up.",
+    "client3": "Elena Rodriguez",
+    "role3": "Product Lead, Aura",
+    "review4": "Their strategic approach to design and development helped us quadruple our conversion rates within the first quarter.",
+    "client4": "Michael Chang",
+    "role4": "VP of Growth, Synthetix",
+    "review5": "The Sirad team brings a rare combination of sheer technical talent and unbridled creativity. They are the gold standard.",
+    "client5": "Nadia Al-Fayed",
+    "role5": "Creative Director, Lumina"
+  },
   "CTA": {
     "title1": "Ready to reshape your ",
     "titleHighlight": "brand's",

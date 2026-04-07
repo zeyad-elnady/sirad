@@ -16,8 +16,8 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: 'Sirad | Kinetic Precision Tech Agency',
-  description: 'Uniting technical excellence with captivating design to propel your business forward.',
+  title: 'Sirad Creative Hub',
+  description: 'Where limitless creativity meets cutting-edge technology. Sirad transforms bold ideas into dynamic digital realities.',
 };
 
 export default async function LocaleLayout({
