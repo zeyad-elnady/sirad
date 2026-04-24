@@ -93,6 +93,11 @@
     "pageTitle": "Our Creative ",
     "pageTitleHighlight": "Portfolio",
     "pageDesc": "Explore the pixel-perfect platforms and data-driven campaigns we've crafted for ambitious brands.",
+    "categoryAll": "All",
+    "categoryWeb": "Web Apps",
+    "categoryMobile": "Mobile Apps",
+    "categoryMarketing": "Marketing",
+    "categoryBranding": "Branding",
     "project1Title": "Neon Finance App",
     "project1Desc": "A high-velocity trading platform.",
     "project2Title": "Hyperdrive Logistics",
@@ -100,7 +105,11 @@
     "project3Title": "Obsidian Studio",
     "project3Desc": "Editorial e-commerce brand identity.",
     "project4Title": "Kinetic Dash",
-    "project4Desc": "Real-time analytics dashboard."
+    "project4Desc": "Real-time analytics dashboard.",
+    "project5Title": "Aura Social Campaign",
+    "project5Desc": "Viral marketing campaign reaching 10M+ users.",
+    "project6Title": "Lumina Identity",
+    "project6Desc": "Complete brand overhaul and guidelines."
   },
   "ServicesPage": {
     "pageLabel": "Our Expertise",
