@@ -35,7 +35,7 @@ export default function WorkPage() {
   return (
     <>
       <Header />
-      <main className="relative bg-[#050505]">
+      <main className="relative bg-[#050505] z-10">
         {/* --- Page Header --- */}
         <section className="pt-32 pb-16 px-8 md:px-24 relative overflow-hidden">
           <div className="absolute inset-0 z-0">

@@ -11,7 +11,7 @@ export default function ContactPage() {
   return (
     <>
       <Header />
-      <main className="relative min-h-[90vh]">
+      <main className="relative min-h-[90vh] z-10 bg-[#131313]">
         {/* --- Unified Contact Layout --- */}
         <section className="pt-40 pb-24 px-8 md:px-24 max-w-screen-2xl mx-auto flex flex-col md:flex-row gap-16 md:gap-24">
           

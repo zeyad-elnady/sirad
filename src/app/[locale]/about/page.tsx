@@ -9,7 +9,7 @@ export default function AboutPage() {
   return (
     <>
       <Header />
-      <main className="relative">
+      <main className="relative z-10 bg-[#131313]">
         {/* --- About Us Page Header --- */}
         <section className="pt-32 pb-24 px-8 md:px-24 relative overflow-hidden">
           <div className="absolute inset-0 z-0">

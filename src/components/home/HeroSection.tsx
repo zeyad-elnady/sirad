@@ -5,7 +5,12 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import { useRef, useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { Link } from '@/i18n/routing';
-import { GravityStarsBackground } from '@/components/animate-ui/components/backgrounds/gravity-stars';
+import dynamic from 'next/dynamic';
+
+const AuroraBackground = dynamic(
+  () => import('@/components/animate-ui/components/backgrounds/aurora').then((mod) => mod.AuroraBackground),
+  { ssr: false }
+);
 
 const containerVariants = {
   hidden: {},
@@ -55,13 +60,7 @@ export default function HeroSection() {
       ref={ref}
       className="relative min-h-[100svh] flex flex-col justify-center px-6 md:px-16 lg:px-24 overflow-hidden pt-24 lg:pt-32 pb-10 lg:pb-16"
     >
-      {/* Interactive Star Background */}
-      <GravityStarsBackground 
-        className="absolute inset-0 z-0 opacity-80" 
-        starsInteraction={true}
-        gravityStrength={100}
-        movementSpeed={0.12}
-      />
+      <AuroraBackground className="absolute inset-0 z-0 opacity-60 pointer-events-none" />
 
       <div className="max-w-screen-xl mx-auto flex flex-col lg:grid lg:grid-cols-2 gap-6 lg:gap-16 items-center justify-center relative z-10 w-full pointer-events-none mt-8 lg:mt-0">
         {/* ---- Text Column ---- */}

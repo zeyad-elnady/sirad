@@ -10,7 +10,7 @@ export default function HomePage() {
   return (
     <>
       <Header />
-      <main className="relative flex-1">
+      <main className="relative flex-1 z-10 bg-[#131313]">
         <HeroSection />
         <Services />
         <Portfolio />
