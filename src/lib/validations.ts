@@ -105,10 +105,10 @@ export const projectEmployeeSchema = z.object({
 export const transactionSchema = z.object({
   employeeId: z.string().min(1),
   type: z.enum(['SALARY', 'PARTIAL_PAYMENT', 'DEPOSIT', 'LOAN', 'ADVANCE', 'TASK_PAYMENT', 'BONUS', 'DEDUCTION']),
-  amount: z.number().min(0, 'Amount must be positive'),
-  date: z.string().datetime().optional(),
+  amount: z.coerce.number().min(0, 'Amount must be positive'),
+  date: z.string().optional().nullable(),
   projectId: z.string().optional().nullable(),
-  notes: z.string().optional(),
+  notes: z.string().optional().nullable(),
 });
 
 // ─── Recurring Expense ───

@@ -36,14 +36,20 @@ export async function POST(
     const { id } = await params;
     const body = await request.json();
     const parsed = transactionSchema.safeParse({
-      ...body,
       employeeId: id,
-      amount: typeof body.amount === 'string' ? parseFloat(body.amount) : body.amount,
+      type: body.type,
+      amount: body.amount,
+      date: body.date || undefined,
       projectId: body.projectId || null,
+      notes: body.notes || null,
     });
     if (!parsed.success) {
+      const fieldErrors = parsed.error.flatten().fieldErrors;
+      const errorMsg = Object.entries(fieldErrors)
+        .map(([field, errs]) => `${field}: ${errs?.join(', ')}`)
+        .join('; ');
       return NextResponse.json(
-        { error: 'Validation failed', details: parsed.error.flatten().fieldErrors },
+        { error: errorMsg || 'Validation failed', details: fieldErrors },
         { status: 400 }
       );
     }
