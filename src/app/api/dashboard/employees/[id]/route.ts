@@ -45,9 +45,26 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
+    const updateData: Record<string, any> = {};
+    if (body.name !== undefined) updateData.name = body.name;
+    if (body.email !== undefined) updateData.email = body.email ? body.email.trim() : null;
+    if (body.phone !== undefined) updateData.phone = body.phone ? body.phone.trim() : null;
+    if (body.role !== undefined) updateData.role = body.role;
+    if (body.department !== undefined) updateData.department = body.department;
+    if (body.paymentModel !== undefined) updateData.paymentModel = body.paymentModel;
+    if (body.isFreelancer !== undefined) updateData.isFreelancer = Boolean(body.isFreelancer);
+    if (body.monthlyRate !== undefined) {
+      updateData.monthlyRate = body.monthlyRate !== null && body.monthlyRate !== '' ? parseFloat(body.monthlyRate) : null;
+    }
+    if (body.hourlyRate !== undefined) {
+      updateData.hourlyRate = body.hourlyRate !== null && body.hourlyRate !== '' ? parseFloat(body.hourlyRate) : null;
+    }
+    if (body.bankDetails !== undefined) updateData.bankDetails = body.bankDetails ? body.bankDetails.trim() : null;
+    if (body.notes !== undefined) updateData.notes = body.notes ? body.notes.trim() : null;
+
     const employee = await db.employee.update({
       where: { id },
-      data: body,
+      data: updateData,
     });
 
     return NextResponse.json({ employee });

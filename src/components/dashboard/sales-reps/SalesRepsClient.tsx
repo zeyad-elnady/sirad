@@ -21,7 +21,7 @@ interface Props {
 
 export default function SalesRepsClient({ role, salesReps }: Props) {
   const router = useRouter();
-  const accentColor = role === 'ZEYAD_TECH' ? '#DC2626' : '#7C3AED';
+  const accentColor = role === 'ZEYAD_TECH' ? '#B6FF33' : '#7C3AED';
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: '', phone: '', email: '' });
@@ -65,7 +65,7 @@ export default function SalesRepsClient({ role, salesReps }: Props) {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif' }}>Sales Representatives</h1>
-        <button onClick={openNew} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 18px', borderRadius: '10px', background: `linear-gradient(135deg, ${accentColor}, ${accentColor}90)`, color: '#fff', border: 'none', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
+        <button onClick={openNew} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 18px', borderRadius: '10px', background: accentColor === '#B6FF33' ? 'linear-gradient(135deg, #B6FF33, #96da00)' : `linear-gradient(135deg, ${accentColor}, ${accentColor}90)`, color: accentColor === '#B6FF33' ? '#121f00' : '#fff', border: 'none', fontSize: '13px', fontWeight: 700, cursor: 'pointer', boxShadow: accentColor === '#B6FF33' ? '0 0 25px rgba(182,255,51,0.25)' : 'none' }}>
           <Plus size={16} /> Add Sales Rep
         </button>
       </div>
@@ -125,7 +125,7 @@ export default function SalesRepsClient({ role, salesReps }: Props) {
                 <input style={inputStyle} placeholder="Name *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
                 <input style={inputStyle} type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
                 <input style={inputStyle} placeholder="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-                <button type="submit" disabled={isSubmitting} style={{ padding: '12px', borderRadius: '10px', border: 'none', background: accentColor, color: '#fff', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}>
+                <button type="submit" disabled={isSubmitting} style={{ padding: '12px', borderRadius: '10px', border: 'none', background: accentColor, color: accentColor === '#B6FF33' ? '#121f00' : '#fff', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
                   {isSubmitting ? 'Saving...' : editingId ? 'Update' : 'Add Sales Rep'}
                 </button>
               </div>

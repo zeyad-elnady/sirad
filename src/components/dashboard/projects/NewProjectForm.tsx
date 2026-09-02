@@ -54,7 +54,7 @@ const labelStyle: React.CSSProperties = {
 
 export default function NewProjectForm({ role, department, clients, salesReps }: Props) {
   const router = useRouter();
-  const accentColor = role === 'ZEYAD_TECH' ? '#DC2626' : '#7C3AED';
+  const accentColor = role === 'ZEYAD_TECH' ? '#B6FF33' : '#7C3AED';
   const projectTypes = department === 'TECH' ? techTypes : marketingTypes;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -269,7 +269,7 @@ export default function NewProjectForm({ role, department, clients, salesReps }:
                   onChange={(e) => setNewClientName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), createNewClient())}
                 />
-                <button type="button" onClick={createNewClient} style={{ padding: '10px', borderRadius: '8px', background: accentColor, border: 'none', color: '#fff', cursor: 'pointer' }}>
+                <button type="button" onClick={createNewClient} style={{ padding: '10px', borderRadius: '8px', background: accentColor, border: 'none', color: accentColor === '#B6FF33' ? '#121f00' : '#fff', cursor: 'pointer', fontWeight: 600 }}>
                   <Plus size={16} />
                 </button>
                 <button type="button" onClick={() => setShowNewClient(false)} style={{ padding: '10px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: '#6B6B70', cursor: 'pointer' }}>
@@ -406,16 +406,16 @@ export default function NewProjectForm({ role, department, clients, salesReps }:
               padding: '12px 28px',
               borderRadius: '10px',
               border: 'none',
-              background: `linear-gradient(135deg, ${accentColor}, ${accentColor}90)`,
-              color: '#fff',
+              background: accentColor === '#B6FF33' ? 'linear-gradient(135deg, #B6FF33, #96da00)' : `linear-gradient(135deg, ${accentColor}, ${accentColor}90)`,
+              color: accentColor === '#B6FF33' ? '#121f00' : '#fff',
               fontSize: '14px',
-              fontWeight: 600,
+              fontWeight: 700,
               fontFamily: '"Space Grotesk", sans-serif',
               cursor: isSubmitting ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              boxShadow: `0 0 20px ${accentColor}20`,
+              boxShadow: accentColor === '#B6FF33' ? '0 0 25px rgba(182,255,51,0.25)' : `0 0 20px ${accentColor}20`,
               opacity: isSubmitting ? 0.6 : 1,
               transition: 'all 0.2s',
             }}

@@ -127,27 +127,37 @@ export default function DashboardLoginPage() {
           }}
         >
           {/* Logo & Subtitle */}
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              marginBottom: '28px',
+              gap: '14px',
+            }}
+          >
             <Link
               href="/"
               style={{
                 display: 'inline-flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                marginBottom: '16px',
                 textDecoration: 'none',
               }}
             >
-              <div style={{ position: 'relative', width: '160px', height: '48px' }}>
-                <Image
-                  src="/logo-.png"
-                  alt="Sirad"
-                  width={160}
-                  height={48}
-                  priority
-                  style={{ objectFit: 'contain' }}
-                />
-              </div>
+              <Image
+                src="/logo-trimmed.png"
+                alt="Sirad"
+                width={170}
+                height={36}
+                priority
+                style={{
+                  width: '170px',
+                  height: 'auto',
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 0 20px rgba(182,255,51,0.2))',
+                }}
+              />
             </Link>
 
             <div>

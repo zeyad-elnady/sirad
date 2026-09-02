@@ -35,7 +35,7 @@ function formatCurrency(amount: number): string {
 }
 
 const categoryIcons = {
-  HOSTING: <Server size={16} className="text-red-400" />,
+  HOSTING: <Server size={16} className="text-[#B6FF33]" />,
   DOMAIN: <Globe size={16} className="text-blue-400" />,
   API_USAGE: <Cpu size={16} className="text-purple-400" />,
   OTHER: <MoreHorizontal size={16} className="text-zinc-400" />,
@@ -43,7 +43,7 @@ const categoryIcons = {
 
 export default function RecurringExpensesClient({ role, expenses, projects }: Props) {
   const router = useRouter();
-  const accentColor = '#DC2626';
+  const accentColor = '#B6FF33';
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({
@@ -125,13 +125,13 @@ export default function RecurringExpensesClient({ role, expenses, projects }: Pr
             gap: '6px',
             padding: '10px 18px',
             borderRadius: '10px',
-            background: `linear-gradient(135deg, ${accentColor}, ${accentColor}90)`,
-            color: '#fff',
+            background: 'linear-gradient(135deg, #B6FF33, #96da00)',
+            color: '#121f00',
             border: 'none',
             fontSize: '13px',
-            fontWeight: 600,
+            fontWeight: 700,
             cursor: 'pointer',
-            boxShadow: `0 0 20px ${accentColor}20`,
+            boxShadow: '0 0 25px rgba(182,255,51,0.25)',
           }}
         >
           <Plus size={16} /> Log Expense
@@ -144,7 +144,7 @@ export default function RecurringExpensesClient({ role, expenses, projects }: Pr
           <div style={{ fontSize: '11px', fontWeight: 600, color: '#6B6B70', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
             Estimated Monthly Burn Rate
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', color: '#DC2626' }}>
+          <div style={{ fontSize: '24px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', color: '#B6FF33' }}>
             {formatCurrency(totalMonthlyBurn)}/mo
           </div>
         </div>
@@ -197,7 +197,7 @@ export default function RecurringExpensesClient({ role, expenses, projects }: Pr
                   </td>
                   <td style={{ padding: '14px 16px', fontSize: '13px', color: '#E8E4E0' }}>{e.description}</td>
                   <td style={{ padding: '14px 16px', fontSize: '13px', color: '#8B8B90' }}>{e.projectTitle}</td>
-                  <td style={{ padding: '14px 16px', fontSize: '13px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', color: '#DC2626' }}>
+                  <td style={{ padding: '14px 16px', fontSize: '13px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', color: '#B6FF33' }}>
                     {formatCurrency(e.amount)}
                   </td>
                   <td style={{ padding: '14px 16px', fontSize: '12px', color: '#6B6B70', textTransform: 'capitalize' }}>
@@ -324,9 +324,9 @@ export default function RecurringExpensesClient({ role, expenses, projects }: Pr
                     borderRadius: '10px',
                     border: 'none',
                     background: accentColor,
-                    color: '#fff',
+                    color: '#121f00',
                     fontSize: '14px',
-                    fontWeight: 600,
+                    fontWeight: 700,
                     cursor: 'pointer',
                     marginTop: '8px',
                   }}

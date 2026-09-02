@@ -116,13 +116,13 @@ export default function DashboardSidebar({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="relative w-32 h-10 shrink-0 flex items-center"
+              className="relative w-32 h-8 shrink-0 flex items-center"
             >
               <Image
-                src="/logo-.png"
+                src="/logo-trimmed.png"
                 alt="Sirad"
                 width={128}
-                height={36}
+                height={27}
                 priority
                 className="object-contain object-left pointer-events-none"
               />

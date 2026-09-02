@@ -32,7 +32,7 @@ const installmentStatusColors: Record<string, string> = {
 };
 
 export default function ProjectDetailClient({ role, project, profit }: Props) {
-  const accentColor = role === 'ZEYAD_TECH' ? '#DC2626' : '#7C3AED';
+  const accentColor = role === 'ZEYAD_TECH' ? '#B6FF33' : '#7C3AED';
   const p = project as Record<string, any>;
   const st = statusColors[p.status as string] || statusColors.DRAFT;
 

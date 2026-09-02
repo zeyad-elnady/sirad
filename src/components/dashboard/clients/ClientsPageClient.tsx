@@ -23,7 +23,7 @@ interface Props {
 
 export default function ClientsPageClient({ role, clients }: Props) {
   const router = useRouter();
-  const accentColor = role === 'ZEYAD_TECH' ? '#DC2626' : '#7C3AED';
+  const accentColor = role === 'ZEYAD_TECH' ? '#B6FF33' : '#7C3AED';
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', phone: '', company: '', notes: '' });
@@ -62,7 +62,7 @@ export default function ClientsPageClient({ role, clients }: Props) {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif' }}>Clients</h1>
-        <button onClick={() => setShowForm(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 18px', borderRadius: '10px', background: `linear-gradient(135deg, ${accentColor}, ${accentColor}90)`, color: '#fff', border: 'none', fontSize: '13px', fontWeight: 600, cursor: 'pointer', boxShadow: `0 0 20px ${accentColor}20` }}>
+        <button onClick={() => setShowForm(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 18px', borderRadius: '10px', background: accentColor === '#B6FF33' ? 'linear-gradient(135deg, #B6FF33, #96da00)' : `linear-gradient(135deg, ${accentColor}, ${accentColor}90)`, color: accentColor === '#B6FF33' ? '#121f00' : '#fff', border: 'none', fontSize: '13px', fontWeight: 700, cursor: 'pointer', boxShadow: accentColor === '#B6FF33' ? '0 0 25px rgba(182,255,51,0.25)' : `0 0 20px ${accentColor}20` }}>
           <Plus size={16} /> Add Client
         </button>
       </div>
@@ -101,7 +101,7 @@ export default function ClientsPageClient({ role, clients }: Props) {
                 <input style={inputStyle} placeholder="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
                 <input style={inputStyle} placeholder="Company" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
                 <textarea style={{ ...inputStyle, minHeight: '60px', resize: 'vertical' }} placeholder="Notes" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
-                <button type="submit" disabled={isSubmitting} style={{ padding: '12px', borderRadius: '10px', border: 'none', background: accentColor, color: '#fff', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}>
+                <button type="submit" disabled={isSubmitting} style={{ padding: '12px', borderRadius: '10px', border: 'none', background: accentColor, color: accentColor === '#B6FF33' ? '#121f00' : '#fff', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
                   {isSubmitting ? 'Creating...' : 'Create Client'}
                 </button>
               </div>

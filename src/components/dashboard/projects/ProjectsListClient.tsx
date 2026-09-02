@@ -48,7 +48,7 @@ const statuses = ['ALL', 'DRAFT', 'ACTIVE', 'ON_HOLD', 'COMPLETED', 'CANCELLED']
 export default function ProjectsListClient({ role, projects }: Props) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
-  const accentColor = role === 'ZEYAD_TECH' ? '#DC2626' : '#7C3AED';
+  const accentColor = role === 'ZEYAD_TECH' ? '#B6FF33' : '#7C3AED';
 
   const filtered = projects.filter((p) => {
     const matchesSearch =
@@ -94,13 +94,13 @@ export default function ProjectsListClient({ role, projects }: Props) {
             gap: '8px',
             padding: '10px 20px',
             borderRadius: '10px',
-            background: `linear-gradient(135deg, ${accentColor}, ${accentColor}90)`,
-            color: '#fff',
+            background: accentColor === '#B6FF33' ? 'linear-gradient(135deg, #B6FF33, #96da00)' : `linear-gradient(135deg, ${accentColor}, ${accentColor}90)`,
+            color: accentColor === '#B6FF33' ? '#121f00' : '#fff',
             textDecoration: 'none',
             fontSize: '13px',
-            fontWeight: 600,
+            fontWeight: 700,
             fontFamily: '"Space Grotesk", sans-serif',
-            boxShadow: `0 0 20px ${accentColor}20`,
+            boxShadow: accentColor === '#B6FF33' ? '0 0 25px rgba(182,255,51,0.25)' : `0 0 20px ${accentColor}20`,
             transition: 'all 0.2s',
           }}
         >
