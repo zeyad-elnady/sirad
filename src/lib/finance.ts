@@ -219,7 +219,10 @@ export async function getFinanceOverview(department?: 'TECH' | 'MARKETING'): Pro
   let totalSalesCommissions = 0;
   for (const p of projects) {
     if (p.hasSalesRep && p.salesCommissionPercent) {
-      const gross = p.totalAmount - totalEmployeeCosts;
+      const pEmployeeCosts = filteredAssignments
+        .filter((a) => a.projectId === p.id)
+        .reduce((sum, a) => sum + a.payAmount, 0);
+      const gross = Math.max(0, p.totalAmount - pEmployeeCosts);
       totalSalesCommissions += (gross * p.salesCommissionPercent) / 100;
     }
   }

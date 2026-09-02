@@ -21,6 +21,8 @@ interface ProjectItem {
   hasSalesRep: boolean;
   salesRepName: string | null;
   employeeCount: number;
+  employeeSalaries?: number;
+  netProfit?: number;
   startDate?: string | null;
   deadline?: string | null;
   createdAt: string;
@@ -205,7 +207,7 @@ export default function ProjectsListClient({ role, projects }: Props) {
             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '940px' }}>
               <thead>
                 <tr>
-                  {['Project', 'Client', 'Type', 'Amount', 'Deposit', 'Timeline', 'Sales Rep', 'Team', 'Status', 'Action'].map((h) => (
+                  {['Project', 'Client', 'Type', 'Amount', 'Salaries', 'Net Profit', 'Deposit', 'Timeline', 'Team', 'Status', 'Action'].map((h) => (
                     <th
                       key={h}
                       style={{
@@ -229,6 +231,8 @@ export default function ProjectsListClient({ role, projects }: Props) {
                 {filtered.map((project, i) => {
                   const style = statusColors[project.status] || statusColors.DRAFT;
                   const type = project.techProjectType || project.marketingProjectType || '—';
+                  const salaries = project.employeeSalaries ?? 0;
+                  const profitVal = project.netProfit ?? (project.totalAmount - salaries);
                   return (
                     <tr
                       key={project.id}
@@ -254,6 +258,12 @@ export default function ProjectsListClient({ role, projects }: Props) {
                       </td>
                       <td style={{ padding: '14px 16px', fontSize: '13px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif' }}>
                         {formatCurrency(project.totalAmount)}
+                      </td>
+                      <td style={{ padding: '14px 16px', fontSize: '13px', color: salaries > 0 ? '#EF4444' : '#6B6B70', fontFamily: '"Space Grotesk", sans-serif' }}>
+                        {salaries > 0 ? `-${formatCurrency(salaries)}` : formatCurrency(0)}
+                      </td>
+                      <td style={{ padding: '14px 16px', fontSize: '13px', fontWeight: 700, color: profitVal >= 0 ? '#22C55E' : '#DC2626', fontFamily: '"Space Grotesk", sans-serif' }}>
+                        {formatCurrency(profitVal)}
                       </td>
                       <td style={{ padding: '14px 16px', fontSize: '13px', color: '#22C55E' }}>
                         {formatCurrency(project.depositPaid)}

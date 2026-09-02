@@ -240,6 +240,47 @@ export default function ProjectDetailClient({
     }
   }
 
+  function openEditEmployee(pe: any) {
+    setAssignForm({
+      employeeId: pe.employeeId,
+      assignedRole: pe.assignedRole,
+      payAmount: String(pe.payAmount ?? 0),
+      notes: pe.notes || '',
+    });
+    setAssignError('');
+    setShowAssignModal(true);
+  }
+
+  // Real-time financial calculations subtracting employee salaries
+  const totalEmployeesCost =
+    (p.employees as any[])?.reduce(
+      (sum: number, pe: any) => sum + (Number(pe.payAmount) || 0),
+      0
+    ) ?? (profit?.employeeCosts ?? 0);
+
+  const recurringCosts =
+    (p.recurringExpenses as any[])?.reduce((sum: number, exp: any) => {
+      return sum + (exp.frequency === 'ANNUAL' ? (Number(exp.amount) || 0) / 12 : (Number(exp.amount) || 0));
+    }, 0) ?? (profit?.recurringExpenseCosts ?? 0);
+
+  const productionCosts = Number(p.productionDetail?.rentalCost) || (profit?.productionCosts ?? 0);
+
+  const totalCosts = totalEmployeesCost + recurringCosts + productionCosts;
+  const grossProfit = Number(p.totalAmount || 0) - totalCosts;
+
+  let salesCommission = 0;
+  if (p.hasSalesRep && p.salesCommissionPercent) {
+    salesCommission = Math.max(0, (grossProfit * Number(p.salesCommissionPercent)) / 100);
+  } else if (profit?.salesCommission) {
+    salesCommission = profit.salesCommission;
+  }
+
+  const computedNetProfit = grossProfit - salesCommission;
+  const profitMargin =
+    p.totalAmount > 0
+      ? ((computedNetProfit / p.totalAmount) * 100).toFixed(1)
+      : '0.0';
+
   const cardStyle: React.CSSProperties = {
     borderRadius: '14px',
     background: 'rgba(18,18,20,0.6)',
@@ -383,11 +424,23 @@ export default function ProjectDetailClient({
       </div>
 
       {/* Financial & Timeline Summary */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '16px' }}>
         {[
-          { label: 'Total', value: formatCurrency(p.totalAmount), color: '#E8E4E0' },
+          { label: 'Total Revenue', value: formatCurrency(p.totalAmount), color: '#E8E4E0' },
           { label: 'Deposit', value: formatCurrency(p.depositPaid), color: '#22C55E' },
           { label: 'Remaining', value: formatCurrency(p.totalAmount - p.depositPaid), color: '#F59E0B' },
+          {
+            label: 'Employee Salaries',
+            value: totalEmployeesCost > 0 ? `-${formatCurrency(totalEmployeesCost)}` : formatCurrency(0),
+            color: totalEmployeesCost > 0 ? '#EF4444' : '#6B6B70',
+            sublabel: `${((p.employees as any[]) || []).length} team member${((p.employees as any[]) || []).length !== 1 ? 's' : ''}`,
+          },
+          {
+            label: 'Net Profit',
+            value: formatCurrency(computedNetProfit),
+            color: computedNetProfit >= 0 ? '#22C55E' : '#DC2626',
+            sublabel: `${profitMargin}% margin (Revenue − Salaries)`,
+          },
           {
             label: 'Start Date',
             value: p.startDate ? format(new Date(p.startDate), 'MMM d, yyyy') : 'Not set',
@@ -404,18 +457,136 @@ export default function ProjectDetailClient({
               : '#6B6B70',
             isDate: true,
           },
-          ...(profit ? [
-            { label: 'Net Profit', value: formatCurrency(profit.netProfit), color: profit.netProfit >= 0 ? '#22C55E' : '#DC2626' },
-          ] : []),
-          ...(p.hasSalesRep && profit ? [
-            { label: 'Sales Commission', value: formatCurrency(profit.salesCommission), color: '#7C3AED' },
+          ...(p.hasSalesRep ? [
+            {
+              label: 'Sales Commission',
+              value: formatCurrency(salesCommission),
+              color: '#7C3AED',
+              sublabel: `${p.salesCommissionPercent || 0}% after costs`,
+            },
           ] : []),
         ].map((card) => (
           <div key={card.label} style={{ padding: '16px', borderRadius: '12px', background: 'rgba(18,18,20,0.6)', border: '1px solid rgba(255,255,255,0.04)' }}>
             <div style={{ fontSize: '10px', fontWeight: 600, color: '#6B6B70', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>{card.label}</div>
             <div style={{ fontSize: (card as any).isDate ? '16px' : '20px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', color: card.color }}>{card.value}</div>
+            {(card as any).sublabel && (
+              <div style={{ fontSize: '11px', color: '#8E8E93', marginTop: '4px' }}>
+                {(card as any).sublabel}
+              </div>
+            )}
           </div>
         ))}
+      </div>
+
+      {/* Net Profit Calculation Formula Banner */}
+      <div
+        style={{
+          borderRadius: '12px',
+          background: 'rgba(18,18,20,0.7)',
+          border: '1px solid rgba(255,255,255,0.06)',
+          padding: '16px 20px',
+          marginBottom: '24px',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', color: accentColor, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Profit Calculation Formula
+            </span>
+            <span style={{ fontSize: '12px', color: '#6B6B70' }}>•</span>
+            <span style={{ fontSize: '12px', color: '#8E8E93' }}>
+              Net Profit = Total Revenue − Subtracted Employee Salaries
+            </span>
+          </div>
+          <span
+            style={{
+              fontSize: '11px',
+              fontWeight: 700,
+              padding: '3px 10px',
+              borderRadius: '12px',
+              background: computedNetProfit >= 0 ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)',
+              color: computedNetProfit >= 0 ? '#22C55E' : '#EF4444',
+            }}
+          >
+            {profitMargin}% Profit Margin
+          </span>
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '12px',
+            padding: '12px 16px',
+            borderRadius: '10px',
+            background: 'rgba(0,0,0,0.35)',
+            border: '1px solid rgba(255,255,255,0.03)',
+          }}
+        >
+          <div>
+            <div style={{ fontSize: '10px', color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Revenue</div>
+            <div style={{ fontSize: '16px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', color: '#FFFFFF' }}>
+              {formatCurrency(p.totalAmount)}
+            </div>
+          </div>
+
+          <span style={{ fontSize: '18px', fontWeight: 700, color: '#EF4444' }}>−</span>
+
+          <div>
+            <div style={{ fontSize: '10px', color: '#EF4444', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Employee Salaries ({((p.employees as any[]) || []).length} assigned)
+            </div>
+            <div style={{ fontSize: '16px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', color: '#EF4444' }}>
+              {formatCurrency(totalEmployeesCost)}
+            </div>
+          </div>
+
+          {recurringCosts > 0 && (
+            <>
+              <span style={{ fontSize: '18px', fontWeight: 700, color: '#F59E0B' }}>−</span>
+              <div>
+                <div style={{ fontSize: '10px', color: '#F59E0B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Recurring Expenses</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', color: '#F59E0B' }}>
+                  {formatCurrency(recurringCosts)}
+                </div>
+              </div>
+            </>
+          )}
+
+          {productionCosts > 0 && (
+            <>
+              <span style={{ fontSize: '18px', fontWeight: 700, color: '#F59E0B' }}>−</span>
+              <div>
+                <div style={{ fontSize: '10px', color: '#F59E0B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Production Costs</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', color: '#F59E0B' }}>
+                  {formatCurrency(productionCosts)}
+                </div>
+              </div>
+            </>
+          )}
+
+          {salesCommission > 0 && (
+            <>
+              <span style={{ fontSize: '18px', fontWeight: 700, color: '#7C3AED' }}>−</span>
+              <div>
+                <div style={{ fontSize: '10px', color: '#7C3AED', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Sales Commission</div>
+                <div style={{ fontSize: '16px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', color: '#7C3AED' }}>
+                  {formatCurrency(salesCommission)}
+                </div>
+              </div>
+            </>
+          )}
+
+          <span style={{ fontSize: '18px', fontWeight: 700, color: '#6B6B70' }}>=</span>
+
+          <div>
+            <div style={{ fontSize: '10px', color: '#22C55E', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Net Profit</div>
+            <div style={{ fontSize: '18px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', color: computedNetProfit >= 0 ? '#22C55E' : '#DC2626' }}>
+              {formatCurrency(computedNetProfit)}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Contract & Installments */}
@@ -463,12 +634,18 @@ export default function ProjectDetailClient({
       {/* Team Members */}
       <div style={cardStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-          <h3 style={{ ...sectionTitle, marginBottom: 0 }}>
-            <Users size={16} /> Team ({(p.employees as any[])?.length || 0})
-          </h3>
+          <div>
+            <h3 style={{ ...sectionTitle, marginBottom: '2px' }}>
+              <Users size={16} /> Team ({((p.employees as any[]) || []).length})
+            </h3>
+            <span style={{ fontSize: '11px', color: '#8E8E93' }}>
+              Total Salaries Subtracted: <strong style={{ color: '#EF4444' }}>{formatCurrency(totalEmployeesCost)}</strong>
+            </span>
+          </div>
           <button
             type="button"
             onClick={() => {
+              setAssignForm({ employeeId: '', assignedRole: '', payAmount: '', notes: '' });
               setAssignError('');
               setShowAssignModal(true);
             }}
@@ -491,7 +668,7 @@ export default function ProjectDetailClient({
           </button>
         </div>
 
-        {(p.employees as any[])?.length > 0 ? (
+        {((p.employees as any[]) || []).length > 0 ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '12px' }}>
             {(p.employees as any[]).map((pe: any) => (
               <div
@@ -520,29 +697,57 @@ export default function ProjectDetailClient({
                     >
                       {pe.employee.name}
                     </Link>
-                    <button
-                      type="button"
-                      title="Remove from project"
-                      disabled={removingId === pe.employeeId}
-                      onClick={() => handleRemoveEmployee(pe.employeeId, pe.employee.name)}
-                      style={{
-                        padding: '5px',
-                        borderRadius: '6px',
-                        border: '1px solid rgba(239,68,68,0.2)',
-                        background: 'rgba(239,68,68,0.05)',
-                        color: '#ef4444',
-                        cursor: removingId === pe.employeeId ? 'not-allowed' : 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {removingId === pe.employeeId ? (
-                        <Loader2 size={13} className="animate-spin" />
-                      ) : (
-                        <Trash2 size={13} />
-                      )}
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <button
+                        type="button"
+                        title="Edit pay / role"
+                        onClick={() => openEditEmployee(pe)}
+                        style={{
+                          padding: '5px',
+                          borderRadius: '6px',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          background: 'rgba(255,255,255,0.03)',
+                          color: '#8E8E93',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#FFFFFF';
+                          e.currentTarget.style.borderColor = accentColor;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = '#8E8E93';
+                          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                        }}
+                      >
+                        <Pencil size={12} />
+                      </button>
+                      <button
+                        type="button"
+                        title="Remove from project"
+                        disabled={removingId === pe.employeeId}
+                        onClick={() => handleRemoveEmployee(pe.employeeId, pe.employee.name)}
+                        style={{
+                          padding: '5px',
+                          borderRadius: '6px',
+                          border: '1px solid rgba(239,68,68,0.2)',
+                          background: 'rgba(239,68,68,0.05)',
+                          color: '#ef4444',
+                          cursor: removingId === pe.employeeId ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        {removingId === pe.employeeId ? (
+                          <Loader2 size={13} className="animate-spin" />
+                        ) : (
+                          <Trash2 size={13} />
+                        )}
+                      </button>
+                    </div>
                   </div>
                   <div style={{ fontSize: '12px', color: '#8E8E93', marginTop: '4px' }}>
                     {pe.assignedRole}
@@ -558,16 +763,16 @@ export default function ProjectDetailClient({
                     borderTop: '1px solid rgba(255,255,255,0.04)',
                   }}
                 >
-                  <span style={{ fontSize: '11px', color: '#6B6B70' }}>Project Pay</span>
+                  <span style={{ fontSize: '11px', color: '#EF4444' }}>Salary Subtracted</span>
                   <span
                     style={{
                       fontSize: '13px',
                       fontWeight: 700,
                       fontFamily: '"Space Grotesk", sans-serif',
-                      color: accentColor === '#B6FF33' ? '#B6FF33' : '#a78bfa',
+                      color: '#EF4444',
                     }}
                   >
-                    {formatCurrency(pe.payAmount)}
+                    -{formatCurrency(pe.payAmount)}
                   </span>
                 </div>
               </div>
@@ -628,7 +833,9 @@ export default function ProjectDetailClient({
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ fontSize: '18px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', color: '#FFFFFF', margin: 0 }}>
-                  Assign Team Member
+                  {assignForm.employeeId && ((p.employees as any[]) || []).some((e: any) => e.employeeId === assignForm.employeeId)
+                    ? 'Edit Team Member Pay & Role'
+                    : 'Assign Team Member'}
                 </h2>
                 <button
                   type="button"
@@ -726,7 +933,7 @@ export default function ProjectDetailClient({
 
                 <div>
                   <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
-                    Project Pay Amount (EGP)
+                    Project Salary / Pay Amount (EGP)
                   </label>
                   <input
                     type="number"
@@ -744,10 +951,13 @@ export default function ProjectDetailClient({
                       outline: 'none',
                       boxSizing: 'border-box',
                     }}
-                    placeholder="0.00"
+                    placeholder="e.g. 5000"
                     value={assignForm.payAmount}
                     onChange={(e) => setAssignForm({ ...assignForm, payAmount: e.target.value })}
                   />
+                  <span style={{ fontSize: '11px', color: '#EF4444', marginTop: '4px', display: 'block' }}>
+                    * This salary is automatically subtracted from project revenue to calculate Net Profit.
+                  </span>
                 </div>
 
                 <div>
