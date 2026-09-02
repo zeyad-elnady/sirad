@@ -8,15 +8,10 @@ DB_HOST="db"
 DB_PORT="5432"
 
 if [ -n "$DATABASE_URL" ]; then
-  # Parse host from postgres://user:pass@host:port/dbname
-  PARSED_HOST=$(echo "$DATABASE_URL" | sed -n 's/.*@\([^:/]*\).*/\1/p')
-  PARSED_PORT=$(echo "$DATABASE_URL" | sed -n 's/.*:[0-9]*@.*:\([0-9]*\)\/.*/\1/p')
-  if [ -n "$PARSED_HOST" ]; then
-    DB_HOST="$PARSED_HOST"
-  fi
-  if [ -n "$PARSED_PORT" ]; then
-    DB_PORT="$PARSED_PORT"
-  fi
+  # Parse host and port reliably using node
+  PARSED=$(node -e 'try { const u = new URL(process.env.DATABASE_URL); console.log((u.hostname || "db") + " " + (u.port || "5432")); } catch(e) { console.log("db 5432"); }')
+  DB_HOST=$(echo "$PARSED" | cut -d' ' -f1)
+  DB_PORT=$(echo "$PARSED" | cut -d' ' -f2)
 fi
 
 echo "⏳ [Sirad ERP] Waiting for PostgreSQL at ${DB_HOST}:${DB_PORT}..."
