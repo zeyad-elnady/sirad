@@ -15,7 +15,7 @@ export default async function ProjectDetailPage({
   const { id } = await params;
   const department = getDepartmentForRole(session.role);
 
-  const [project, availableEmployees, clients, salesReps] = await Promise.all([
+  const [project, availableEmployees, clients, salesReps, projectTransactions] = await Promise.all([
     db.project.findUnique({
       where: { id },
       include: {
@@ -34,6 +34,10 @@ export default async function ProjectDetailPage({
     }),
     db.client.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } }),
     db.salesRep.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } }),
+    db.employeeTransaction.findMany({
+      where: { projectId: id },
+      orderBy: { date: 'desc' },
+    }),
   ]);
 
   if (!project || project.department !== department) notFound();
@@ -108,6 +112,14 @@ export default async function ProjectDetailPage({
         monthlyRate: e.monthlyRate,
         hourlyRate: e.hourlyRate,
         isFreelancer: e.isFreelancer,
+      }))}
+      projectTransactions={projectTransactions.map((tx) => ({
+        id: tx.id,
+        type: tx.type,
+        amount: tx.amount,
+        employeeId: tx.employeeId,
+        date: tx.date.toISOString(),
+        notes: tx.notes,
       }))}
     />
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -48,6 +48,15 @@ interface AvailableEmployee {
   isFreelancer: boolean;
 }
 
+interface ProjectTransaction {
+  id: string;
+  type: string;
+  amount: number;
+  employeeId: string;
+  date: string;
+  notes?: string | null;
+}
+
 interface Props {
   role: UserRole;
   project: Record<string, unknown>;
@@ -55,6 +64,7 @@ interface Props {
   availableEmployees?: AvailableEmployee[];
   clients?: { id: string; name: string; company: string | null }[];
   salesReps?: { id: string; name: string }[];
+  projectTransactions?: ProjectTransaction[];
 }
 
 function formatCurrency(amount: number): string {
@@ -82,6 +92,7 @@ export default function ProjectDetailClient({
   availableEmployees = [],
   clients = [],
   salesReps = [],
+  projectTransactions = [],
 }: Props) {
   const router = useRouter();
   const accentColor = role === 'ZEYAD_TECH' ? '#B6FF33' : '#7C3AED';
@@ -281,6 +292,36 @@ export default function ProjectDetailClient({
       ? ((computedNetProfit / p.totalAmount) * 100).toFixed(1)
       : '0.0';
 
+  // Map employeeId -> { paid: number, remaining: number, payAmount: number }
+  const employeePaymentsMap = useMemo(() => {
+    const map: Record<string, { paid: number; remaining: number; payAmount: number }> = {};
+    const employees = (p.employees as any[]) || [];
+    employees.forEach((pe) => {
+      const paid = projectTransactions
+        .filter(
+          (tx) =>
+            tx.employeeId === pe.employeeId &&
+            ['SALARY', 'PARTIAL_PAYMENT', 'DEPOSIT', 'TASK_PAYMENT', 'ADVANCE'].includes(tx.type)
+        )
+        .reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
+      const payAmount = Number(pe.payAmount) || 0;
+      map[pe.employeeId] = {
+        paid,
+        remaining: Math.max(0, payAmount - paid),
+        payAmount,
+      };
+    });
+    return map;
+  }, [p.employees, projectTransactions]);
+
+  const totalSalariesPaid = useMemo(() => {
+    return Object.values(employeePaymentsMap).reduce((sum, item) => sum + item.paid, 0);
+  }, [employeePaymentsMap]);
+
+  const totalSalariesRemaining = useMemo(() => {
+    return Object.values(employeePaymentsMap).reduce((sum, item) => sum + item.remaining, 0);
+  }, [employeePaymentsMap]);
+
   const cardStyle: React.CSSProperties = {
     borderRadius: '14px',
     background: 'rgba(18,18,20,0.6)',
@@ -433,7 +474,9 @@ export default function ProjectDetailClient({
             label: 'Employee Salaries',
             value: totalEmployeesCost > 0 ? `-${formatCurrency(totalEmployeesCost)}` : formatCurrency(0),
             color: totalEmployeesCost > 0 ? '#EF4444' : '#6B6B70',
-            sublabel: `${((p.employees as any[]) || []).length} team member${((p.employees as any[]) || []).length !== 1 ? 's' : ''}`,
+            sublabel: totalSalariesPaid > 0
+              ? `Paid: ${formatCurrency(totalSalariesPaid)} • Remaining: ${formatCurrency(totalSalariesRemaining)}`
+              : `${((p.employees as any[]) || []).length} team member${((p.employees as any[]) || []).length !== 1 ? 's' : ''}`,
           },
           {
             label: 'Net Profit',
@@ -754,27 +797,63 @@ export default function ProjectDetailClient({
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    paddingTop: '8px',
-                    borderTop: '1px solid rgba(255,255,255,0.04)',
-                  }}
-                >
-                  <span style={{ fontSize: '11px', color: '#EF4444' }}>Salary Subtracted</span>
-                  <span
-                    style={{
-                      fontSize: '13px',
-                      fontWeight: 700,
-                      fontFamily: '"Space Grotesk", sans-serif',
-                      color: '#EF4444',
-                    }}
-                  >
-                    -{formatCurrency(pe.payAmount)}
-                  </span>
-                </div>
+                {(() => {
+                  const empStats = employeePaymentsMap[pe.employeeId] || {
+                    paid: 0,
+                    remaining: Number(pe.payAmount || 0),
+                    payAmount: Number(pe.payAmount || 0),
+                  };
+                  const percent = empStats.payAmount > 0
+                    ? Math.min(100, Math.round((empStats.paid / empStats.payAmount) * 100))
+                    : 0;
+                  return (
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px',
+                        paddingTop: '10px',
+                        borderTop: '1px solid rgba(255,255,255,0.04)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '11px', color: '#8E8E93' }}>Agreed Salary</span>
+                        <span style={{ fontSize: '12px', fontWeight: 600, color: '#FFFFFF', fontFamily: '"Space Grotesk", sans-serif' }}>
+                          {formatCurrency(pe.payAmount)}
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '11px', color: '#22C55E' }}>Paid to Date</span>
+                        <span style={{ fontSize: '12px', fontWeight: 600, color: '#22C55E', fontFamily: '"Space Grotesk", sans-serif' }}>
+                          {formatCurrency(empStats.paid)}
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '11px', color: empStats.remaining > 0 ? '#F59E0B' : '#22C55E', fontWeight: 600 }}>
+                          Remaining Owed
+                        </span>
+                        <span style={{ fontSize: '13px', fontWeight: 700, color: empStats.remaining > 0 ? '#F59E0B' : '#22C55E', fontFamily: '"Space Grotesk", sans-serif' }}>
+                          {empStats.remaining > 0 ? formatCurrency(empStats.remaining) : 'Fully Paid ✓'}
+                        </span>
+                      </div>
+
+                      {/* Progress bar */}
+                      <div style={{ width: '100%', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginTop: '2px' }}>
+                        <div
+                          style={{
+                            width: `${percent}%`,
+                            height: '100%',
+                            background: empStats.remaining === 0 ? '#22C55E' : accentColor,
+                            borderRadius: '2px',
+                            transition: 'width 0.3s',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             ))}
           </div>

@@ -40,15 +40,50 @@ export default function EmployeeProfileClient({ role, employee, balance, project
     (employee.projectAssignments || []).map((pa: any) => pa.projectId)
   );
 
-  const assignedProjectOptions = (employee.projectAssignments || []).map((pa: any) => ({
-    id: pa.projectId,
-    title: pa.project?.title || 'Unknown Project',
-    payAmount: pa.payAmount,
-  }));
+  // Map of project financial stats for this employee (agreed, paid, remaining)
+  const projectStatsMap: Record<string, { payAmount: number; paid: number; remaining: number }> = {};
+
+  (employee.projectAssignments || []).forEach((pa: any) => {
+    const paid = (employee.transactions || [])
+      .filter(
+        (tx: any) =>
+          tx.projectId === pa.projectId &&
+          ['SALARY', 'PARTIAL_PAYMENT', 'DEPOSIT', 'TASK_PAYMENT', 'ADVANCE'].includes(tx.type)
+      )
+      .reduce((sum: number, tx: any) => sum + (Number(tx.amount) || 0), 0);
+
+    const remaining = Math.max(0, (Number(pa.payAmount) || 0) - paid);
+    projectStatsMap[pa.projectId] = {
+      payAmount: Number(pa.payAmount) || 0,
+      paid,
+      remaining,
+    };
+  });
+
+  const assignedProjectOptions = (employee.projectAssignments || []).map((pa: any) => {
+    const stats = projectStatsMap[pa.projectId];
+    return {
+      id: pa.projectId,
+      title: pa.project?.title || 'Unknown Project',
+      payAmount: pa.payAmount,
+      remaining: stats ? stats.remaining : pa.payAmount,
+    };
+  });
 
   const otherProjectOptions = (projects || []).filter(
     (p: any) => !assignedProjectIds.has(p.id)
   );
+
+  function openPaymentForProject(projectId: string, remainingAmount: number) {
+    setTxForm({
+      type: 'SALARY',
+      projectId,
+      amount: remainingAmount > 0 ? String(remainingAmount) : '',
+      notes: '',
+    });
+    setTxError('');
+    setShowTxForm(true);
+  }
 
   const [editForm, setEditForm] = useState({
     name: employee.name || '',
@@ -291,29 +326,83 @@ export default function EmployeeProfileClient({ role, employee, balance, project
 
       {/* Projects */}
       <div style={{ borderRadius: '14px', background: 'rgba(18,18,20,0.6)', border: '1px solid rgba(255,255,255,0.04)', padding: '24px', marginBottom: '20px' }}>
-        <h3 style={{ fontSize: '14px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', color: accentColor, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Briefcase size={16} /> Assigned Projects ({employee.projectAssignments?.length || 0})
-        </h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+          <h3 style={{ fontSize: '14px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', color: accentColor, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Briefcase size={16} /> Assigned Projects ({employee.projectAssignments?.length || 0})
+          </h3>
+          <span style={{ fontSize: '12px', color: '#8E8E93' }}>
+            Track agreed compensation, paid amounts, and remaining balances
+          </span>
+        </div>
         {employee.projectAssignments?.length > 0 ? (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '780px' }}>
               <thead>
                 <tr>
-                  {['Project', 'Client', 'Role', 'Pay', 'Status'].map((h) => (
+                  {['Project', 'Client', 'Role', 'Agreed Pay', 'Paid to Date', 'Remaining Owed', 'Progress', 'Action'].map((h) => (
                     <th key={h} style={{ padding: '10px 14px', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#6B6B70', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {employee.projectAssignments.map((pa: any) => (
-                  <tr key={pa.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                    <td style={{ padding: '10px 14px' }}><Link href={`/dashboard/projects/${pa.projectId}`} style={{ color: '#E8E4E0', textDecoration: 'none', fontWeight: 500, fontSize: '13px' }}>{pa.project.title}</Link></td>
-                    <td style={{ padding: '10px 14px', color: '#6B6B70', fontSize: '12px' }}>{pa.project.client?.name}</td>
-                    <td style={{ padding: '10px 14px', fontSize: '12px' }}>{pa.assignedRole}</td>
-                    <td style={{ padding: '10px 14px', fontSize: '13px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', color: '#22C55E' }}>{formatCurrency(pa.payAmount)}</td>
-                    <td style={{ padding: '10px 14px', fontSize: '11px', color: pa.isActive ? '#22C55E' : '#6B6B70' }}>{pa.isActive ? 'Active' : 'Completed'}</td>
-                  </tr>
-                ))}
+                {employee.projectAssignments.map((pa: any) => {
+                  const stats = projectStatsMap[pa.projectId] || { payAmount: pa.payAmount, paid: 0, remaining: pa.payAmount };
+                  const percent = stats.payAmount > 0 ? Math.min(100, Math.round((stats.paid / stats.payAmount) * 100)) : 0;
+                  return (
+                    <tr key={pa.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                      <td style={{ padding: '12px 14px' }}>
+                        <Link href={`/dashboard/projects/${pa.projectId}`} style={{ color: '#FFFFFF', textDecoration: 'none', fontWeight: 600, fontSize: '13px' }}>
+                          {pa.project.title}
+                        </Link>
+                      </td>
+                      <td style={{ padding: '12px 14px', color: '#8E8E93', fontSize: '12px' }}>{pa.project.client?.name || '—'}</td>
+                      <td style={{ padding: '12px 14px', fontSize: '12px', color: '#E8E4E0' }}>{pa.assignedRole}</td>
+                      <td style={{ padding: '12px 14px', fontSize: '13px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', color: '#E8E4E0' }}>
+                        {formatCurrency(stats.payAmount)}
+                      </td>
+                      <td style={{ padding: '12px 14px', fontSize: '13px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', color: '#22C55E' }}>
+                        {formatCurrency(stats.paid)}
+                      </td>
+                      <td style={{ padding: '12px 14px', fontSize: '13px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', color: stats.remaining > 0 ? '#F59E0B' : '#22C55E' }}>
+                        {stats.remaining > 0 ? formatCurrency(stats.remaining) : 'Fully Paid ✓'}
+                      </td>
+                      <td style={{ padding: '12px 14px', minWidth: '120px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ flex: 1, height: '6px', borderRadius: '3px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                            <div style={{ width: `${percent}%`, height: '100%', background: percent >= 100 ? '#22C55E' : accentColor, borderRadius: '3px', transition: 'width 0.3s' }} />
+                          </div>
+                          <span style={{ fontSize: '10px', color: '#8E8E93', fontFamily: '"Space Grotesk", sans-serif' }}>{percent}%</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: '12px 14px' }}>
+                        {stats.remaining > 0 ? (
+                          <button
+                            type="button"
+                            onClick={() => openPaymentForProject(pa.projectId, stats.remaining)}
+                            style={{
+                              padding: '5px 12px',
+                              borderRadius: '8px',
+                              border: `1px solid ${accentColor}40`,
+                              background: `${accentColor}12`,
+                              color: accentColor,
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              fontFamily: '"Space Grotesk", sans-serif',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            <Plus size={11} /> Pay Owed
+                          </button>
+                        ) : (
+                          <span style={{ fontSize: '11px', color: '#22C55E', fontWeight: 600 }}>Completed</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -650,11 +739,11 @@ export default function EmployeeProfileClient({ role, employee, balance, project
                     value={txForm.projectId}
                     onChange={(e) => {
                       const selectedProjectId = e.target.value;
-                      const assignment = (employee.projectAssignments || []).find((pa: any) => pa.projectId === selectedProjectId);
+                      const stats = projectStatsMap[selectedProjectId];
                       setTxForm((prev) => ({
                         ...prev,
                         projectId: selectedProjectId,
-                        amount: assignment && (!prev.amount || prev.amount === '0') ? String(assignment.payAmount) : prev.amount,
+                        amount: stats && stats.remaining > 0 ? String(stats.remaining) : prev.amount,
                       }));
                     }}
                   >
@@ -663,7 +752,7 @@ export default function EmployeeProfileClient({ role, employee, balance, project
                       <optgroup label="Assigned Projects" style={{ background: '#121214', color: accentColor }}>
                         {assignedProjectOptions.map((p: any) => (
                           <option key={p.id} value={p.id} style={{ background: '#121214', color: '#FFFFFF' }}>
-                            {p.title} — Pay: {formatCurrency(p.payAmount)}
+                            {p.title} — Remaining: {formatCurrency(p.remaining)} (Agreed: {formatCurrency(p.payAmount)})
                           </option>
                         ))}
                       </optgroup>
@@ -678,6 +767,31 @@ export default function EmployeeProfileClient({ role, employee, balance, project
                       </optgroup>
                     )}
                   </select>
+
+                  {/* Dynamic Remaining Balance Preview Box */}
+                  {txForm.projectId && projectStatsMap[txForm.projectId] && (
+                    <div
+                      style={{
+                        marginTop: '8px',
+                        padding: '10px 14px',
+                        borderRadius: '8px',
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.06)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontSize: '11px',
+                        flexWrap: 'wrap',
+                        gap: '8px',
+                      }}
+                    >
+                      <span>Agreed: <strong>{formatCurrency(projectStatsMap[txForm.projectId].payAmount)}</strong></span>
+                      <span style={{ color: '#22C55E' }}>Paid: <strong>{formatCurrency(projectStatsMap[txForm.projectId].paid)}</strong></span>
+                      <span style={{ color: projectStatsMap[txForm.projectId].remaining > 0 ? '#F59E0B' : '#22C55E', fontWeight: 700 }}>
+                        Remaining Owed: {formatCurrency(projectStatsMap[txForm.projectId].remaining)}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div>
