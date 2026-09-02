@@ -13,20 +13,35 @@ export default async function EmployeeProfilePage({
   if (!session) redirect('/dashboard/login');
 
   const { id } = await params;
-  const employee = await db.employee.findUnique({
-    where: { id },
-    include: {
-      projectAssignments: {
-        include: { project: { include: { client: true } } },
-        orderBy: { createdAt: 'desc' },
+  const [employee, departmentProjects] = await Promise.all([
+    db.employee.findUnique({
+      where: { id },
+      include: {
+        projectAssignments: {
+          include: { project: { include: { client: true } } },
+          orderBy: { createdAt: 'desc' },
+        },
+        transactions: {
+          include: { project: true },
+          orderBy: { date: 'desc' },
+        },
       },
-      transactions: { orderBy: { date: 'desc' } },
-    },
-  });
+    }),
+    db.project.findMany({
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        title: true,
+        department: true,
+        status: true,
+      },
+    }),
+  ]);
 
   if (!employee) notFound();
 
   const balance = await calculateEmployeeBalance(id);
+  const filteredProjects = departmentProjects.filter((p) => p.department === employee.department);
 
   return (
     <EmployeeProfileClient
@@ -54,11 +69,17 @@ export default async function EmployeeProfilePage({
         })),
         transactions: employee.transactions.map((t) => ({
           ...t,
+          projectName: t.project?.title || null,
           date: t.date.toISOString(),
           createdAt: t.createdAt.toISOString(),
         })),
       }}
       balance={balance}
+      projects={filteredProjects.map((p) => ({
+        id: p.id,
+        title: p.title,
+        status: p.status,
+      }))}
     />
   );
 }

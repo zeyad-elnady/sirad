@@ -13,6 +13,7 @@ interface Props {
   role: UserRole;
   employee: Record<string, any>;
   balance: EmployeeBalance;
+  projects?: { id: string; title: string; status: string }[];
 }
 
 function formatCurrency(amount: number): string {
@@ -24,7 +25,7 @@ const txTypeColors: Record<string, string> = {
   ADVANCE: '#F59E0B', TASK_PAYMENT: '#22C55E', BONUS: '#10B981', DEDUCTION: '#DC2626',
 };
 
-export default function EmployeeProfileClient({ role, employee, balance }: Props) {
+export default function EmployeeProfileClient({ role, employee, balance, projects = [] }: Props) {
   const router = useRouter();
   const accentColor = role === 'ZEYAD_TECH' ? '#B6FF33' : '#7C3AED';
   const [showTxForm, setShowTxForm] = useState(false);
@@ -32,7 +33,22 @@ export default function EmployeeProfileClient({ role, employee, balance }: Props
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editError, setEditError] = useState('');
-  const [txForm, setTxForm] = useState({ type: 'PARTIAL_PAYMENT', amount: '', notes: '' });
+  const [txError, setTxError] = useState('');
+  const [txForm, setTxForm] = useState({ type: 'SALARY', amount: '', projectId: '', notes: '' });
+
+  const assignedProjectIds = new Set(
+    (employee.projectAssignments || []).map((pa: any) => pa.projectId)
+  );
+
+  const assignedProjectOptions = (employee.projectAssignments || []).map((pa: any) => ({
+    id: pa.projectId,
+    title: pa.project?.title || 'Unknown Project',
+    payAmount: pa.payAmount,
+  }));
+
+  const otherProjectOptions = (projects || []).filter(
+    (p: any) => !assignedProjectIds.has(p.id)
+  );
 
   const [editForm, setEditForm] = useState({
     name: employee.name || '',
@@ -96,17 +112,28 @@ export default function EmployeeProfileClient({ role, employee, balance }: Props
   async function handleTransaction(e: React.FormEvent) {
     e.preventDefault();
     setIsSubmitting(true);
+    setTxError('');
     try {
       const res = await fetch(`/api/dashboard/employees/${employee.id}/transactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...txForm, amount: parseFloat(txForm.amount) }),
+        body: JSON.stringify({
+          type: txForm.type,
+          amount: parseFloat(txForm.amount),
+          projectId: txForm.projectId || null,
+          notes: txForm.notes || null,
+        }),
       });
-      if (res.ok) {
-        setShowTxForm(false);
-        setTxForm({ type: 'PARTIAL_PAYMENT', amount: '', notes: '' });
-        router.refresh();
+      const data = await res.json();
+      if (!res.ok) {
+        setTxError(data.error || 'Failed to record payment');
+        return;
       }
+      setShowTxForm(false);
+      setTxForm({ type: 'SALARY', amount: '', projectId: '', notes: '' });
+      router.refresh();
+    } catch {
+      setTxError('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -308,6 +335,22 @@ export default function EmployeeProfileClient({ role, employee, balance }: Props
                   <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '6px', background: `${txTypeColors[tx.type] || '#6B6B70'}15`, color: txTypeColors[tx.type] || '#6B6B70', fontWeight: 500, textTransform: 'capitalize' }}>
                     {tx.type.replace(/_/g, ' ').toLowerCase()}
                   </span>
+                  {tx.projectName && (
+                    <span
+                      style={{
+                        marginLeft: '8px',
+                        fontSize: '11px',
+                        color: accentColor,
+                        fontWeight: 600,
+                        background: `${accentColor}12`,
+                        border: `1px solid ${accentColor}25`,
+                        padding: '2px 8px',
+                        borderRadius: '6px',
+                      }}
+                    >
+                      Project: {tx.projectName}
+                    </span>
+                  )}
                   {tx.notes && <span style={{ marginLeft: '8px', fontSize: '12px', color: '#6B6B70' }}>{tx.notes}</span>}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -572,21 +615,86 @@ export default function EmployeeProfileClient({ role, employee, balance }: Props
           >
             <motion.form initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
               onClick={(e) => e.stopPropagation()} onSubmit={handleTransaction}
-              style={{ background: '#121214', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '420px', border: '1px solid rgba(255,255,255,0.06)' }}
+              style={{ background: '#121214', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '440px', border: '1px solid rgba(255,255,255,0.06)' }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                 <h2 style={{ fontSize: '18px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif' }}>New Payment</h2>
                 <button type="button" onClick={() => setShowTxForm(false)} style={{ background: 'none', border: 'none', color: '#6B6B70', cursor: 'pointer' }}><X size={20} /></button>
               </div>
+
+              {txError && (
+                <div style={{ padding: '8px 12px', borderRadius: '8px', background: 'rgba(239,68,68,0.1)', color: '#EF4444', fontSize: '12px', marginBottom: '12px' }}>
+                  {txError}
+                </div>
+              )}
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <select style={{ ...inputStyle, cursor: 'pointer' }} value={txForm.type} onChange={(e) => setTxForm({ ...txForm, type: e.target.value })}>
-                  {['SALARY', 'PARTIAL_PAYMENT', 'DEPOSIT', 'LOAN', 'ADVANCE', 'TASK_PAYMENT', 'BONUS', 'DEDUCTION'].map((t) => (
-                    <option key={t} value={t} style={{ background: '#121214' }}>{t.replace(/_/g, ' ')}</option>
-                  ))}
-                </select>
-                <input style={inputStyle} type="number" step="0.01" placeholder="Amount (EGP)" value={txForm.amount} onChange={(e) => setTxForm({ ...txForm, amount: e.target.value })} required />
-                <textarea style={{ ...inputStyle, minHeight: '60px' }} placeholder="Notes (optional)" value={txForm.notes} onChange={(e) => setTxForm({ ...txForm, notes: e.target.value })} />
-                <button type="submit" disabled={isSubmitting} style={{ padding: '12px', borderRadius: '10px', border: 'none', background: accentColor, color: accentColor === '#B6FF33' ? '#121f00' : '#fff', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                    Payment Type
+                  </label>
+                  <select style={{ ...inputStyle, cursor: 'pointer' }} value={txForm.type} onChange={(e) => setTxForm({ ...txForm, type: e.target.value })}>
+                    {['SALARY', 'PARTIAL_PAYMENT', 'DEPOSIT', 'LOAN', 'ADVANCE', 'TASK_PAYMENT', 'BONUS', 'DEDUCTION'].map((t) => (
+                      <option key={t} value={t} style={{ background: '#121214' }}>{t.replace(/_/g, ' ')}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Choose Project Dropdown */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                    Choose Project
+                  </label>
+                  <select
+                    style={{ ...inputStyle, cursor: 'pointer' }}
+                    value={txForm.projectId}
+                    onChange={(e) => {
+                      const selectedProjectId = e.target.value;
+                      const assignment = (employee.projectAssignments || []).find((pa: any) => pa.projectId === selectedProjectId);
+                      setTxForm((prev) => ({
+                        ...prev,
+                        projectId: selectedProjectId,
+                        amount: assignment && (!prev.amount || prev.amount === '0') ? String(assignment.payAmount) : prev.amount,
+                      }));
+                    }}
+                  >
+                    <option value="" style={{ background: '#121214' }}>General Payment (No specific project)</option>
+                    {assignedProjectOptions.length > 0 && (
+                      <optgroup label="Assigned Projects" style={{ background: '#121214', color: accentColor }}>
+                        {assignedProjectOptions.map((p: any) => (
+                          <option key={p.id} value={p.id} style={{ background: '#121214', color: '#FFFFFF' }}>
+                            {p.title} — Pay: {formatCurrency(p.payAmount)}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    {otherProjectOptions.length > 0 && (
+                      <optgroup label="Other Department Projects" style={{ background: '#121214', color: '#8E8E93' }}>
+                        {otherProjectOptions.map((p: any) => (
+                          <option key={p.id} value={p.id} style={{ background: '#121214', color: '#E8E4E0' }}>
+                            {p.title}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                    Amount (EGP) *
+                  </label>
+                  <input style={inputStyle} type="number" step="0.01" placeholder="Amount (EGP)" value={txForm.amount} onChange={(e) => setTxForm({ ...txForm, amount: e.target.value })} required />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                    Notes (optional)
+                  </label>
+                  <textarea style={{ ...inputStyle, minHeight: '60px' }} placeholder="Notes (optional)" value={txForm.notes} onChange={(e) => setTxForm({ ...txForm, notes: e.target.value })} />
+                </div>
+
+                <button type="submit" disabled={isSubmitting} style={{ padding: '12px', borderRadius: '10px', border: 'none', background: accentColor, color: accentColor === '#B6FF33' ? '#121f00' : '#fff', fontSize: '14px', fontWeight: 700, cursor: 'pointer', marginTop: '6px' }}>
                   {isSubmitting ? 'Processing...' : 'Record Payment'}
                 </button>
               </div>

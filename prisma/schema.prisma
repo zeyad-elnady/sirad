@@ -185,6 +185,7 @@ model Project {
   employees         ProjectEmployee[]
   recurringExpenses RecurringExpense[]
   productionDetail  ProductionDetail?
+  employeeTransactions EmployeeTransaction[]
 
   @@map("projects")
 }
@@ -257,6 +258,7 @@ model EmployeeTransaction {
 
   // Optionally linked to a project
   projectId  String?
+  project    Project?        @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   @@map("employee_transactions")
 }

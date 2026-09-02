@@ -14,6 +14,7 @@ export async function GET(
     const { id } = await params;
     const transactions = await db.employeeTransaction.findMany({
       where: { employeeId: id },
+      include: { project: true },
       orderBy: { date: 'desc' },
     });
 
@@ -34,7 +35,12 @@ export async function POST(
 
     const { id } = await params;
     const body = await request.json();
-    const parsed = transactionSchema.safeParse({ ...body, employeeId: id });
+    const parsed = transactionSchema.safeParse({
+      ...body,
+      employeeId: id,
+      amount: typeof body.amount === 'string' ? parseFloat(body.amount) : body.amount,
+      projectId: body.projectId || null,
+    });
     if (!parsed.success) {
       return NextResponse.json(
         { error: 'Validation failed', details: parsed.error.flatten().fieldErrors },
@@ -49,8 +55,9 @@ export async function POST(
         amount: parsed.data.amount,
         date: parsed.data.date ? new Date(parsed.data.date) : new Date(),
         notes: parsed.data.notes,
-        projectId: parsed.data.projectId,
+        projectId: parsed.data.projectId || null,
       },
+      include: { project: true },
     });
 
     await db.auditLog.create({
