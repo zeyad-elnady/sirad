@@ -45,17 +45,6 @@ export default function DashboardTopbar({ role, userName }: TopbarProps) {
 
       {/* Right Controls */}
       <div className="flex items-center gap-3 md:gap-4">
-        {/* Live System Status Pill */}
-        <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#B6FF33]/20 bg-[#B6FF33]/5">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#B6FF33] opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#B6FF33]"></span>
-          </span>
-          <span className="font-headline text-[10px] uppercase tracking-[0.14em] text-[#B6FF33] font-bold">
-            Live System
-          </span>
-        </div>
-
         {/* Public Website Shortcut */}
         <Link
           href="/"
