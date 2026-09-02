@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: sirad-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sirad}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sirad_secret_2024}
+      POSTGRES_DB: ${POSTGRES_DB:-sirad_erp}
+    ports:
+      - "${DB_PORT:-5433}:5432"
+    volumes:
+      - sirad_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sirad} -d ${POSTGRES_DB:-sirad_erp}"]
+      interval: 4s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sirad-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sirad-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3001}:3000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-sirad}:${POSTGRES_PASSWORD:-sirad_secret_2024}@db:5432/${POSTGRES_DB:-sirad_erp}
+      - JWT_SECRET=${JWT_SECRET:-dev-secret-key-sirad-erp-dashboard-2024-not-for-production}
+      - ZEYAD_PASSWORD=${ZEYAD_PASSWORD:-Sirad@Tech2024}
+      - YEHIA_PASSWORD=${YEHIA_PASSWORD:-Sirad@Marketing2024}
+      - UPLOAD_DIR=/app/uploads
+      - NODE_ENV=production
+      - PORT=3000
+    volumes:
+      - sirad_uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - sirad-network
+
+networks:
+  sirad-network:
+    driver: bridge
+
+volumes:
+  sirad_pgdata:
+  sirad_uploads:

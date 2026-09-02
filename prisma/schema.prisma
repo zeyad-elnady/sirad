@@ -1,0 +1,304 @@
+// ─── Sirad ERP Database Schema ───
+// PostgreSQL via Prisma ORM
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───
+
+enum UserRole {
+  ZEYAD_TECH
+  YEHIA_MARKETING
+}
+
+enum Department {
+  TECH
+  MARKETING
+}
+
+enum ProjectStatus {
+  DRAFT
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum TechProjectType {
+  LANDING_PAGE
+  SYSTEM
+  ECOMMERCE
+  WEBSITE_WITH_DASHBOARD
+}
+
+enum MarketingProjectType {
+  PRODUCTION
+  VISUAL_IDENTITY
+  SOCIAL_MEDIA_SPECIALIST
+  PERFORMANCE_MARKETING
+}
+
+enum PaymentModel {
+  MONTHLY
+  PER_TASK
+}
+
+enum InstallmentStatus {
+  PENDING
+  PAID
+  OVERDUE
+}
+
+enum TransactionType {
+  SALARY
+  PARTIAL_PAYMENT
+  DEPOSIT
+  LOAN
+  ADVANCE
+  TASK_PAYMENT
+  BONUS
+  DEDUCTION
+}
+
+enum ExpenseFrequency {
+  MONTHLY
+  ANNUAL
+}
+
+enum ExpenseCategory {
+  HOSTING
+  DOMAIN
+  API_USAGE
+  OTHER
+}
+
+// ─── Models ───
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         UserRole
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  projects  Project[]
+  auditLogs AuditLog[]
+
+  @@map("users")
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  company   String?
+  notes     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects Project[]
+
+  @@map("clients")
+}
+
+model SalesRep {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  email     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects Project[]
+
+  @@map("sales_reps")
+}
+
+model Employee {
+  id           String       @id @default(cuid())
+  name         String
+  email        String?
+  phone        String?
+  role         String // e.g., "Frontend Developer", "Designer", "Cameraman"
+  department   Department
+  hourlyRate   Float?
+  monthlyRate  Float?
+  paymentModel PaymentModel @default(PER_TASK)
+  isFreelancer Boolean      @default(false)
+  bankDetails  String?
+  notes        String?
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  projectAssignments ProjectEmployee[]
+  transactions       EmployeeTransaction[]
+
+  @@map("employees")
+}
+
+model Project {
+  id                     String               @id @default(cuid())
+  title                  String
+  description            String?
+  department             Department
+  status                 ProjectStatus        @default(DRAFT)
+  techProjectType        TechProjectType?
+  marketingProjectType   MarketingProjectType?
+  totalAmount            Float                @default(0)
+  depositPaid            Float                @default(0)
+
+  // Sales Rep (optional)
+  hasSalesRep            Boolean              @default(false)
+  salesCommissionPercent Float?               // Percentage of profit
+  salesRepId             String?
+  salesRep               SalesRep?            @relation(fields: [salesRepId], references: [id])
+
+  // Client
+  clientId               String
+  client                 Client               @relation(fields: [clientId], references: [id])
+
+  // Created by
+  createdById            String
+  createdBy              User                 @relation(fields: [createdById], references: [id])
+
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+
+  contract          Contract?
+  employees         ProjectEmployee[]
+  recurringExpenses RecurringExpense[]
+  productionDetail  ProductionDetail?
+
+  @@map("projects")
+}
+
+model Contract {
+  id              String   @id @default(cuid())
+  agreementTerms  String   @db.Text // Rich text / long form
+  totalAmount     Float
+  depositPaid     Float    @default(0)
+  contractImages  String[] // Array of file paths
+  signedAt        DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  projectId       String   @unique
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  installments    Installment[]
+
+  @@map("contracts")
+}
+
+model Installment {
+  id         String            @id @default(cuid())
+  amount     Float
+  dueDate    DateTime
+  paidDate   DateTime?
+  status     InstallmentStatus @default(PENDING)
+  notes      String?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  contractId String
+  contract   Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@map("installments")
+}
+
+model ProjectEmployee {
+  id           String    @id @default(cuid())
+  assignedRole String    // Role on this specific project
+  payAmount    Float     // Pay for this project
+  startDate    DateTime?
+  endDate      DateTime?
+  isActive     Boolean   @default(true)
+  notes        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  projectId    String
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  employeeId   String
+  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, employeeId])
+  @@map("project_employees")
+}
+
+model EmployeeTransaction {
+  id         String          @id @default(cuid())
+  type       TransactionType
+  amount     Float
+  date       DateTime        @default(now())
+  notes      String?
+  createdAt  DateTime        @default(now())
+
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  // Optionally linked to a project
+  projectId  String?
+
+  @@map("employee_transactions")
+}
+
+model RecurringExpense {
+  id          String           @id @default(cuid())
+  category    ExpenseCategory
+  description String
+  amount      Float
+  frequency   ExpenseFrequency
+  startDate   DateTime
+  endDate     DateTime?
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  projectId   String
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("recurring_expenses")
+}
+
+model ProductionDetail {
+  id            String  @id @default(cuid())
+  equipmentType String
+  rentalCost    Float
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  projectId     String   @unique
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("production_details")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String   // e.g., "CREATE_PROJECT", "UPDATE_EMPLOYEE"
+  entity    String   // e.g., "Project", "Employee"
+  entityId  String
+  details   Json?    // Arbitrary JSON metadata
+  timestamp DateTime @default(now())
+
+  userId    String
+  user      User @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
