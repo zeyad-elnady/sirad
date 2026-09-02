@@ -19,8 +19,24 @@ import {
   Trash2,
   Loader2,
   AlertTriangle,
+  Pencil,
+  Clock,
 } from 'lucide-react';
 import { format } from 'date-fns';
+
+const techTypes = [
+  { value: 'LANDING_PAGE', label: 'Landing Page' },
+  { value: 'SYSTEM', label: 'System' },
+  { value: 'ECOMMERCE', label: 'E-commerce' },
+  { value: 'WEBSITE_WITH_DASHBOARD', label: 'Website with Dashboard' },
+];
+
+const marketingTypes = [
+  { value: 'PRODUCTION', label: 'Production' },
+  { value: 'VISUAL_IDENTITY', label: 'Visual Identity' },
+  { value: 'SOCIAL_MEDIA_SPECIALIST', label: 'Social Media Specialist' },
+  { value: 'PERFORMANCE_MARKETING', label: 'Performance Marketing' },
+];
 
 interface AvailableEmployee {
   id: string;
@@ -37,6 +53,8 @@ interface Props {
   project: Record<string, unknown>;
   profit: ProjectProfitResult | null;
   availableEmployees?: AvailableEmployee[];
+  clients?: { id: string; name: string; company: string | null }[];
+  salesReps?: { id: string; name: string }[];
 }
 
 function formatCurrency(amount: number): string {
@@ -57,11 +75,116 @@ const installmentStatusColors: Record<string, string> = {
   OVERDUE: '#DC2626',
 };
 
-export default function ProjectDetailClient({ role, project, profit, availableEmployees = [] }: Props) {
+export default function ProjectDetailClient({
+  role,
+  project,
+  profit,
+  availableEmployees = [],
+  clients = [],
+  salesReps = [],
+}: Props) {
   const router = useRouter();
   const accentColor = role === 'ZEYAD_TECH' ? '#B6FF33' : '#7C3AED';
   const p = project as Record<string, any>;
   const st = statusColors[p.status as string] || statusColors.DRAFT;
+  const projectTypes = p.department === 'TECH' ? techTypes : marketingTypes;
+
+  // Edit Project State
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState({
+    title: p.title || '',
+    description: p.description || '',
+    status: p.status || 'DRAFT',
+    startDate: p.startDate ? p.startDate.split('T')[0] : '',
+    deadline: p.deadline ? p.deadline.split('T')[0] : '',
+    totalAmount: String(p.totalAmount ?? 0),
+    depositPaid: String(p.depositPaid ?? 0),
+    clientId: p.clientId || '',
+    projectType: p.techProjectType || p.marketingProjectType || '',
+    hasSalesRep: Boolean(p.hasSalesRep),
+    salesRepId: p.salesRepId || '',
+    salesCommissionPercent: p.salesCommissionPercent ? String(p.salesCommissionPercent) : '',
+  });
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [editError, setEditError] = useState('');
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+  function openEditModal() {
+    setEditForm({
+      title: p.title || '',
+      description: p.description || '',
+      status: p.status || 'DRAFT',
+      startDate: p.startDate ? p.startDate.split('T')[0] : '',
+      deadline: p.deadline ? p.deadline.split('T')[0] : '',
+      totalAmount: String(p.totalAmount ?? 0),
+      depositPaid: String(p.depositPaid ?? 0),
+      clientId: p.clientId || '',
+      projectType: p.techProjectType || p.marketingProjectType || '',
+      hasSalesRep: Boolean(p.hasSalesRep),
+      salesRepId: p.salesRepId || '',
+      salesCommissionPercent: p.salesCommissionPercent ? String(p.salesCommissionPercent) : '',
+    });
+    setEditError('');
+    setShowEditModal(true);
+  }
+
+  async function handleUpdateProject(e: React.FormEvent) {
+    e.preventDefault();
+    setIsUpdating(true);
+    setEditError('');
+    try {
+      const res = await fetch(`/api/dashboard/projects/${p.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: editForm.title,
+          description: editForm.description || null,
+          status: editForm.status,
+          startDate: editForm.startDate ? new Date(editForm.startDate).toISOString() : null,
+          deadline: editForm.deadline ? new Date(editForm.deadline).toISOString() : null,
+          totalAmount: parseFloat(editForm.totalAmount) || 0,
+          depositPaid: parseFloat(editForm.depositPaid) || 0,
+          clientId: editForm.clientId || undefined,
+          techProjectType: p.department === 'TECH' ? editForm.projectType || null : null,
+          marketingProjectType: p.department === 'MARKETING' ? editForm.projectType || null : null,
+          hasSalesRep: editForm.hasSalesRep,
+          salesRepId: editForm.hasSalesRep ? editForm.salesRepId || null : null,
+          salesCommissionPercent:
+            editForm.hasSalesRep && editForm.salesCommissionPercent
+              ? parseFloat(editForm.salesCommissionPercent)
+              : null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setEditError(data.error || 'Failed to update project');
+        return;
+      }
+      setShowEditModal(false);
+      router.refresh();
+    } catch {
+      setEditError('Something went wrong. Please try again.');
+    } finally {
+      setIsUpdating(false);
+    }
+  }
+
+  async function handleQuickStatusChange(newStatus: string) {
+    setIsUpdatingStatus(true);
+    try {
+      const res = await fetch(`/api/dashboard/projects/${p.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) {
+        router.refresh();
+      }
+    } catch { /* ignore */ }
+    finally {
+      setIsUpdatingStatus(false);
+    }
+  }
 
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [assignForm, setAssignForm] = useState({
@@ -139,31 +262,148 @@ export default function ProjectDetailClient({ role, project, profit, availableEm
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'start', gap: '16px', marginBottom: '28px', flexWrap: 'wrap' }}>
-        <Link href="/dashboard/projects" style={{ padding: '8px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)', color: '#6B6B70', display: 'flex', textDecoration: 'none', marginTop: '4px' }}>
-          <ArrowLeft size={18} />
-        </Link>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            <h1 style={{ fontSize: '22px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', letterSpacing: '-0.02em' }}>
-              {p.title}
-            </h1>
-            <span style={{ fontSize: '11px', fontWeight: 500, padding: '4px 12px', borderRadius: '20px', background: st.bg, color: st.text }}>
-              {(p.status as string).replace(/_/g, ' ')}
-            </span>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '28px',
+          flexWrap: 'wrap',
+          gap: '16px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <Link
+            href="/dashboard/projects"
+            style={{
+              padding: '8px',
+              borderRadius: '8px',
+              border: '1px solid rgba(255,255,255,0.06)',
+              background: 'rgba(255,255,255,0.02)',
+              color: '#6B6B70',
+              display: 'flex',
+              textDecoration: 'none',
+            }}
+          >
+            <ArrowLeft size={18} />
+          </Link>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <h1
+                style={{
+                  fontSize: '22px',
+                  fontWeight: 700,
+                  fontFamily: '"Space Grotesk", sans-serif',
+                  letterSpacing: '-0.02em',
+                  color: '#FFFFFF',
+                  margin: 0,
+                }}
+              >
+                {p.title}
+              </h1>
+
+              {/* Status Selector Dropdown */}
+              <div style={{ position: 'relative', display: 'inline-block' }}>
+                <select
+                  value={p.status}
+                  disabled={isUpdatingStatus}
+                  onChange={(e) => handleQuickStatusChange(e.target.value)}
+                  style={{
+                    appearance: 'none',
+                    padding: '4px 28px 4px 12px',
+                    borderRadius: '20px',
+                    background: st.bg,
+                    color: st.text,
+                    border: `1px solid ${st.text}40`,
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    fontFamily: '"Space Grotesk", sans-serif',
+                    cursor: 'pointer',
+                    outline: 'none',
+                  }}
+                >
+                  <option value="DRAFT" style={{ background: '#121214', color: '#6B6B70' }}>● Draft</option>
+                  <option value="ACTIVE" style={{ background: '#121214', color: '#22C55E' }}>● Active</option>
+                  <option value="ON_HOLD" style={{ background: '#121214', color: '#F59E0B' }}>● On Hold</option>
+                  <option value="COMPLETED" style={{ background: '#121214', color: '#3B82F6' }}>● Completed</option>
+                  <option value="CANCELLED" style={{ background: '#121214', color: '#DC2626' }}>● Cancelled</option>
+                </select>
+                <div
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    pointerEvents: 'none',
+                    fontSize: '8px',
+                    color: st.text,
+                  }}
+                >
+                  ▼
+                </div>
+              </div>
+            </div>
+            <p style={{ fontSize: '13px', color: '#6B6B70', marginTop: '4px', margin: 0 }}>
+              {(p.client as any)?.name} • Created {format(new Date(p.createdAt as string), 'MMM d, yyyy')}
+            </p>
           </div>
-          <p style={{ fontSize: '13px', color: '#6B6B70', marginTop: '4px' }}>
-            {(p.client as any)?.name} • Created {format(new Date(p.createdAt as string), 'MMM d, yyyy')}
-          </p>
+        </div>
+
+        {/* Header Actions */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button
+            type="button"
+            onClick={openEditModal}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '9px 18px',
+              borderRadius: '10px',
+              border: `1px solid ${accentColor}50`,
+              background:
+                accentColor === '#B6FF33'
+                  ? 'linear-gradient(135deg, #B6FF33, #96da00)'
+                  : `linear-gradient(135deg, ${accentColor}, ${accentColor}90)`,
+              color: accentColor === '#B6FF33' ? '#121f00' : '#FFFFFF',
+              fontSize: '13px',
+              fontWeight: 700,
+              fontFamily: '"Space Grotesk", sans-serif',
+              cursor: 'pointer',
+              boxShadow:
+                accentColor === '#B6FF33'
+                  ? '0 0 20px rgba(182,255,51,0.2)'
+                  : `0 0 20px ${accentColor}20`,
+              transition: 'all 0.2s',
+            }}
+          >
+            <Pencil size={15} /> Edit Project
+          </button>
         </div>
       </div>
 
-      {/* Financial Summary */}
+      {/* Financial & Timeline Summary */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '24px' }}>
         {[
           { label: 'Total', value: formatCurrency(p.totalAmount), color: '#E8E4E0' },
           { label: 'Deposit', value: formatCurrency(p.depositPaid), color: '#22C55E' },
           { label: 'Remaining', value: formatCurrency(p.totalAmount - p.depositPaid), color: '#F59E0B' },
+          {
+            label: 'Start Date',
+            value: p.startDate ? format(new Date(p.startDate), 'MMM d, yyyy') : 'Not set',
+            color: p.startDate ? '#E8E4E0' : '#6B6B70',
+            isDate: true,
+          },
+          {
+            label: 'Project Deadline',
+            value: p.deadline ? format(new Date(p.deadline), 'MMM d, yyyy') : 'No deadline',
+            color: p.deadline
+              ? new Date(p.deadline) < new Date() && p.status !== 'COMPLETED'
+                ? '#EF4444'
+                : accentColor
+              : '#6B6B70',
+            isDate: true,
+          },
           ...(profit ? [
             { label: 'Net Profit', value: formatCurrency(profit.netProfit), color: profit.netProfit >= 0 ? '#22C55E' : '#DC2626' },
           ] : []),
@@ -173,7 +413,7 @@ export default function ProjectDetailClient({ role, project, profit, availableEm
         ].map((card) => (
           <div key={card.label} style={{ padding: '16px', borderRadius: '12px', background: 'rgba(18,18,20,0.6)', border: '1px solid rgba(255,255,255,0.04)' }}>
             <div style={{ fontSize: '10px', fontWeight: 600, color: '#6B6B70', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>{card.label}</div>
-            <div style={{ fontSize: '20px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', color: card.color }}>{card.value}</div>
+            <div style={{ fontSize: (card as any).isDate ? '16px' : '20px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', color: card.color }}>{card.value}</div>
           </div>
         ))}
       </div>
@@ -629,6 +869,388 @@ export default function ProjectDetailClient({ role, project, profit, availableEm
           </div>
         </div>
       )}
+
+      {/* Edit Project Modal */}
+      <AnimatePresence>
+        {showEditModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.75)',
+              backdropFilter: 'blur(8px)',
+              zIndex: 100,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px',
+            }}
+            onClick={() => !isUpdating && setShowEditModal(false)}
+          >
+            <motion.form
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              onClick={(e) => e.stopPropagation()}
+              onSubmit={handleUpdateProject}
+              style={{
+                background: '#121214',
+                borderRadius: '16px',
+                padding: '28px',
+                width: '100%',
+                maxWidth: '560px',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                border: '1px solid rgba(255,255,255,0.08)',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '20px',
+                }}
+              >
+                <h2
+                  style={{
+                    fontSize: '18px',
+                    fontWeight: 700,
+                    fontFamily: '"Space Grotesk", sans-serif',
+                    color: '#FFFFFF',
+                    margin: 0,
+                  }}
+                >
+                  Edit Project Details
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => !isUpdating && setShowEditModal(false)}
+                  style={{ background: 'none', border: 'none', color: '#6B6B70', cursor: 'pointer', padding: '4px' }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {editError && (
+                <div
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                    color: '#EF4444',
+                    fontSize: '13px',
+                    marginBottom: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <AlertTriangle size={16} />
+                  {editError}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                    Project Title *
+                  </label>
+                  <input
+                    style={{
+                      width: '100%',
+                      padding: '11px 14px',
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      borderRadius: '10px',
+                      color: '#E8E4E0',
+                      fontSize: '13px',
+                      fontFamily: '"Inter", sans-serif',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                    value={editForm.title}
+                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                      Status
+                    </label>
+                    <select
+                      style={{
+                        width: '100%',
+                        padding: '11px 14px',
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: '10px',
+                        color: '#E8E4E0',
+                        fontSize: '13px',
+                        fontFamily: '"Inter", sans-serif',
+                        outline: 'none',
+                        cursor: 'pointer',
+                        boxSizing: 'border-box',
+                      }}
+                      value={editForm.status}
+                      onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                    >
+                      <option value="DRAFT" style={{ background: '#121214' }}>Draft</option>
+                      <option value="ACTIVE" style={{ background: '#121214' }}>Active</option>
+                      <option value="ON_HOLD" style={{ background: '#121214' }}>On Hold</option>
+                      <option value="COMPLETED" style={{ background: '#121214' }}>Completed</option>
+                      <option value="CANCELLED" style={{ background: '#121214' }}>Cancelled</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                      Project Type
+                    </label>
+                    <select
+                      style={{
+                        width: '100%',
+                        padding: '11px 14px',
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: '10px',
+                        color: '#E8E4E0',
+                        fontSize: '13px',
+                        fontFamily: '"Inter", sans-serif',
+                        outline: 'none',
+                        cursor: 'pointer',
+                        boxSizing: 'border-box',
+                      }}
+                      value={editForm.projectType}
+                      onChange={(e) => setEditForm({ ...editForm, projectType: e.target.value })}
+                    >
+                      <option value="" style={{ background: '#121214' }}>Select type...</option>
+                      {projectTypes.map((t) => (
+                        <option key={t.value} value={t.value} style={{ background: '#121214' }}>
+                          {t.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Dates: Start Date & Deadline */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                      Date of Start
+                    </label>
+                    <input
+                      type="date"
+                      style={{
+                        width: '100%',
+                        padding: '11px 14px',
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: '10px',
+                        color: '#E8E4E0',
+                        fontSize: '13px',
+                        fontFamily: '"Inter", sans-serif',
+                        outline: 'none',
+                        colorScheme: 'dark',
+                        boxSizing: 'border-box',
+                      }}
+                      value={editForm.startDate}
+                      onChange={(e) => setEditForm({ ...editForm, startDate: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                      Project Deadline
+                    </label>
+                    <input
+                      type="date"
+                      style={{
+                        width: '100%',
+                        padding: '11px 14px',
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: '10px',
+                        color: '#E8E4E0',
+                        fontSize: '13px',
+                        fontFamily: '"Inter", sans-serif',
+                        outline: 'none',
+                        colorScheme: 'dark',
+                        boxSizing: 'border-box',
+                      }}
+                      value={editForm.deadline}
+                      onChange={(e) => setEditForm({ ...editForm, deadline: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                {/* Financial: Total & Deposit */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                      Total Amount (EGP)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="100"
+                      style={{
+                        width: '100%',
+                        padding: '11px 14px',
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: '10px',
+                        color: '#E8E4E0',
+                        fontSize: '13px',
+                        fontFamily: '"Inter", sans-serif',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                      value={editForm.totalAmount}
+                      onChange={(e) => setEditForm({ ...editForm, totalAmount: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                      Deposit Paid (EGP)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="100"
+                      style={{
+                        width: '100%',
+                        padding: '11px 14px',
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: '10px',
+                        color: '#E8E4E0',
+                        fontSize: '13px',
+                        fontFamily: '"Inter", sans-serif',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                      value={editForm.depositPaid}
+                      onChange={(e) => setEditForm({ ...editForm, depositPaid: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                {/* Client Selection */}
+                {clients.length > 0 && (
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                      Client
+                    </label>
+                    <select
+                      style={{
+                        width: '100%',
+                        padding: '11px 14px',
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: '10px',
+                        color: '#E8E4E0',
+                        fontSize: '13px',
+                        fontFamily: '"Inter", sans-serif',
+                        outline: 'none',
+                        cursor: 'pointer',
+                        boxSizing: 'border-box',
+                      }}
+                      value={editForm.clientId}
+                      onChange={(e) => setEditForm({ ...editForm, clientId: e.target.value })}
+                    >
+                      {clients.map((c) => (
+                        <option key={c.id} value={c.id} style={{ background: '#121214' }}>
+                          {c.name} {c.company ? `(${c.company})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Description */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                    Description
+                  </label>
+                  <textarea
+                    style={{
+                      width: '100%',
+                      padding: '11px 14px',
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      borderRadius: '10px',
+                      color: '#E8E4E0',
+                      fontSize: '13px',
+                      fontFamily: '"Inter", sans-serif',
+                      outline: 'none',
+                      minHeight: '75px',
+                      resize: 'vertical',
+                      boxSizing: 'border-box',
+                    }}
+                    value={editForm.description}
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  />
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                  <button
+                    type="button"
+                    disabled={isUpdating}
+                    onClick={() => setShowEditModal(false)}
+                    style={{
+                      padding: '10px 18px',
+                      borderRadius: '10px',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      background: 'rgba(255,255,255,0.03)',
+                      color: '#E8E4E0',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isUpdating}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '10px 22px',
+                      borderRadius: '10px',
+                      border: 'none',
+                      background:
+                        accentColor === '#B6FF33'
+                          ? 'linear-gradient(135deg, #B6FF33, #96da00)'
+                          : `linear-gradient(135deg, ${accentColor}, ${accentColor}90)`,
+                      color: accentColor === '#B6FF33' ? '#121f00' : '#FFFFFF',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      cursor: isUpdating ? 'not-allowed' : 'pointer',
+                      opacity: isUpdating ? 0.7 : 1,
+                    }}
+                  >
+                    {isUpdating && <Loader2 size={15} className="animate-spin" />}
+                    {isUpdating ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </div>
+            </motion.form>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

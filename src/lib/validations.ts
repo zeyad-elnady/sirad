@@ -56,6 +56,8 @@ export const projectSchema = z.object({
   salesRepId: z.string().optional().nullable(),
   salesCommissionPercent: z.number().min(0).max(100).optional().nullable(),
   clientId: z.string().min(1, 'Client is required'),
+  startDate: z.string().optional().nullable(),
+  deadline: z.string().optional().nullable(),
 });
 
 // ─── Contract ───

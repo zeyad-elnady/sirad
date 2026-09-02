@@ -35,6 +35,8 @@ export default async function ProjectsPage() {
         hasSalesRep: p.hasSalesRep,
         salesRepName: p.salesRep?.name || null,
         employeeCount: p._count.employees,
+        startDate: p.startDate?.toISOString() || null,
+        deadline: p.deadline?.toISOString() || null,
         createdAt: p.createdAt.toISOString(),
       }))}
     />

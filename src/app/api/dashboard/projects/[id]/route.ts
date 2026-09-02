@@ -57,10 +57,35 @@ export async function PUT(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
+    const updateData: Record<string, any> = {};
+
+    if (body.title !== undefined) updateData.title = String(body.title);
+    if (body.description !== undefined) updateData.description = body.description || null;
+    if (body.status !== undefined) updateData.status = body.status;
+    if (body.startDate !== undefined) {
+      updateData.startDate = body.startDate ? new Date(body.startDate) : null;
+    }
+    if (body.deadline !== undefined) {
+      updateData.deadline = body.deadline ? new Date(body.deadline) : null;
+    }
+    if (body.totalAmount !== undefined) updateData.totalAmount = parseFloat(body.totalAmount) || 0;
+    if (body.depositPaid !== undefined) updateData.depositPaid = parseFloat(body.depositPaid) || 0;
+    if (body.techProjectType !== undefined) updateData.techProjectType = body.techProjectType || null;
+    if (body.marketingProjectType !== undefined) updateData.marketingProjectType = body.marketingProjectType || null;
+    if (body.clientId !== undefined) updateData.clientId = body.clientId;
+    if (body.hasSalesRep !== undefined) updateData.hasSalesRep = Boolean(body.hasSalesRep);
+    if (body.salesRepId !== undefined) updateData.salesRepId = body.salesRepId || null;
+    if (body.salesCommissionPercent !== undefined) {
+      updateData.salesCommissionPercent =
+        body.salesCommissionPercent !== null && body.salesCommissionPercent !== ''
+          ? parseFloat(body.salesCommissionPercent)
+          : null;
+    }
+
     const project = await db.project.update({
       where: { id },
-      data: body,
-      include: { client: true, salesRep: true },
+      data: updateData,
+      include: { client: true, salesRep: true, employees: { include: { employee: true } } },
     });
 
     await db.auditLog.create({

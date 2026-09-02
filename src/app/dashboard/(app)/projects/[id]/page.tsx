@@ -15,7 +15,7 @@ export default async function ProjectDetailPage({
   const { id } = await params;
   const department = getDepartmentForRole(session.role);
 
-  const [project, availableEmployees] = await Promise.all([
+  const [project, availableEmployees, clients, salesReps] = await Promise.all([
     db.project.findUnique({
       where: { id },
       include: {
@@ -32,6 +32,8 @@ export default async function ProjectDetailPage({
       where: { isActive: true, department },
       orderBy: { name: 'asc' },
     }),
+    db.client.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } }),
+    db.salesRep.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } }),
   ]);
 
   if (!project || project.department !== department) notFound();
@@ -44,6 +46,8 @@ export default async function ProjectDetailPage({
   // Serialize dates for client component
   const serialized = {
     ...project,
+    startDate: project.startDate?.toISOString() || null,
+    deadline: project.deadline?.toISOString() || null,
     createdAt: project.createdAt.toISOString(),
     updatedAt: project.updatedAt.toISOString(),
     contract: project.contract
@@ -94,6 +98,8 @@ export default async function ProjectDetailPage({
       role={session.role}
       project={serialized}
       profit={profit}
+      clients={clients.map((c) => ({ id: c.id, name: c.name, company: c.company }))}
+      salesReps={salesReps.map((s) => ({ id: s.id, name: s.name }))}
       availableEmployees={availableEmployees.map((e) => ({
         id: e.id,
         name: e.name,

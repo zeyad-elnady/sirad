@@ -2,9 +2,11 @@
 
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { UserRole } from '@prisma/client';
-import { Plus, Search, Filter, FolderKanban } from 'lucide-react';
+import { Plus, Search, Filter, FolderKanban, Pencil, Calendar, ArrowUpRight } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface ProjectItem {
   id: string;
@@ -19,6 +21,8 @@ interface ProjectItem {
   hasSalesRep: boolean;
   salesRepName: string | null;
   employeeCount: number;
+  startDate?: string | null;
+  deadline?: string | null;
   createdAt: string;
 }
 
@@ -46,6 +50,7 @@ const statusColors: Record<string, { bg: string; text: string; dot: string }> = 
 const statuses = ['ALL', 'DRAFT', 'ACTIVE', 'ON_HOLD', 'COMPLETED', 'CANCELLED'];
 
 export default function ProjectsListClient({ role, projects }: Props) {
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const accentColor = role === 'ZEYAD_TECH' ? '#B6FF33' : '#7C3AED';
@@ -108,15 +113,18 @@ export default function ProjectsListClient({ role, projects }: Props) {
         </Link>
       </div>
 
-      {/* Filters */}
+      {/* Filters Bar */}
       <div
         style={{
           display: 'flex',
-          gap: '12px',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           marginBottom: '20px',
+          gap: '16px',
           flexWrap: 'wrap',
         }}
       >
+        {/* Search */}
         <div
           style={{
             display: 'flex',
@@ -126,14 +134,14 @@ export default function ProjectsListClient({ role, projects }: Props) {
             border: '1px solid rgba(255,255,255,0.06)',
             borderRadius: '10px',
             padding: '8px 14px',
-            flex: '1',
+            width: '100%',
             maxWidth: '320px',
           }}
         >
           <Search size={16} style={{ color: '#6B6B70' }} />
           <input
             type="text"
-            placeholder="Search projects..."
+            placeholder="Search projects or clients..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={{
@@ -147,28 +155,34 @@ export default function ProjectsListClient({ role, projects }: Props) {
             }}
           />
         </div>
-        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+
+        {/* Status Pills */}
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
           <Filter size={14} style={{ color: '#6B6B70', marginRight: '4px' }} />
-          {statuses.map((s) => (
-            <button
-              key={s}
-              onClick={() => setStatusFilter(s)}
-              style={{
-                padding: '6px 12px',
-                borderRadius: '8px',
-                border: `1px solid ${statusFilter === s ? accentColor + '40' : 'rgba(255,255,255,0.06)'}`,
-                background: statusFilter === s ? accentColor + '15' : 'transparent',
-                color: statusFilter === s ? accentColor : '#6B6B70',
-                fontSize: '11px',
-                fontWeight: 500,
-                cursor: 'pointer',
-                textTransform: 'capitalize',
-                transition: 'all 0.2s',
-              }}
-            >
-              {s === 'ALL' ? 'All' : s.replace(/_/g, ' ').toLowerCase()}
-            </button>
-          ))}
+          {statuses.map((s) => {
+            const active = statusFilter === s;
+            return (
+              <button
+                key={s}
+                onClick={() => setStatusFilter(s)}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '20px',
+                  border: active ? `1px solid ${accentColor}40` : '1px solid rgba(255,255,255,0.06)',
+                  background: active ? (accentColor === '#B6FF33' ? 'rgba(182,255,51,0.1)' : `${accentColor}15`) : 'rgba(255,255,255,0.02)',
+                  color: active ? accentColor : '#6B6B70',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  fontFamily: '"Space Grotesk", sans-serif',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  textTransform: 'capitalize',
+                }}
+              >
+                {s.replace(/_/g, ' ').toLowerCase()}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -188,10 +202,10 @@ export default function ProjectsListClient({ role, projects }: Props) {
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '940px' }}>
               <thead>
                 <tr>
-                  {['Project', 'Client', 'Type', 'Amount', 'Deposit', 'Sales Rep', 'Team', 'Status'].map((h) => (
+                  {['Project', 'Client', 'Type', 'Amount', 'Deposit', 'Timeline', 'Sales Rep', 'Team', 'Status', 'Action'].map((h) => (
                     <th
                       key={h}
                       style={{
@@ -223,13 +237,14 @@ export default function ProjectsListClient({ role, projects }: Props) {
                         transition: 'background 0.15s',
                         cursor: 'pointer',
                       }}
+                      onClick={() => router.push(`/dashboard/projects/${project.id}`)}
                       onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.02)'; }}
                       onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                     >
                       <td style={{ padding: '14px 16px' }}>
-                        <Link href={`/dashboard/projects/${project.id}`} style={{ color: '#E8E4E0', textDecoration: 'none', fontWeight: 500, fontSize: '13px' }}>
+                        <span style={{ color: '#FFFFFF', fontWeight: 600, fontSize: '13px' }}>
                           {project.title}
-                        </Link>
+                        </span>
                       </td>
                       <td style={{ padding: '14px 16px', color: '#8B8B90', fontSize: '13px' }}>{project.clientName}</td>
                       <td style={{ padding: '14px 16px' }}>
@@ -242,6 +257,26 @@ export default function ProjectsListClient({ role, projects }: Props) {
                       </td>
                       <td style={{ padding: '14px 16px', fontSize: '13px', color: '#22C55E' }}>
                         {formatCurrency(project.depositPaid)}
+                      </td>
+                      <td style={{ padding: '14px 16px', fontSize: '12px', whiteSpace: 'nowrap' }}>
+                        {project.deadline ? (
+                          <div>
+                            <div style={{ color: '#E8E4E0', fontWeight: 500 }}>
+                              Due {format(new Date(project.deadline), 'MMM d, yyyy')}
+                            </div>
+                            {project.startDate && (
+                              <div style={{ fontSize: '11px', color: '#6B6B70', marginTop: '2px' }}>
+                                From {format(new Date(project.startDate), 'MMM d')}
+                              </div>
+                            )}
+                          </div>
+                        ) : project.startDate ? (
+                          <div style={{ color: '#8B8B90' }}>
+                            Started {format(new Date(project.startDate), 'MMM d, yyyy')}
+                          </div>
+                        ) : (
+                          <span style={{ color: '#555558' }}>—</span>
+                        )}
                       </td>
                       <td style={{ padding: '14px 16px', fontSize: '12px', color: '#8B8B90' }}>
                         {project.salesRepName || '—'}
@@ -266,6 +301,41 @@ export default function ProjectsListClient({ role, projects }: Props) {
                           <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: style.dot, boxShadow: `0 0 6px ${style.dot}` }} />
                           {project.status.replace(/_/g, ' ')}
                         </span>
+                      </td>
+                      <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/dashboard/projects/${project.id}`);
+                          }}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            background: 'rgba(255,255,255,0.03)',
+                            color: '#E8E4E0',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'all 0.15s',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = `${accentColor}80`;
+                            e.currentTarget.style.color = accentColor;
+                            e.currentTarget.style.background = `${accentColor}10`;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+                            e.currentTarget.style.color = '#E8E4E0';
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                          }}
+                        >
+                          <Pencil size={12} /> Open & Edit
+                        </button>
                       </td>
                     </tr>
                   );

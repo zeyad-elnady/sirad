@@ -79,6 +79,8 @@ export async function POST(request: Request) {
         salesRepId: data.salesRepId,
         salesCommissionPercent: data.salesCommissionPercent,
         clientId: data.clientId,
+        startDate: data.startDate ? new Date(data.startDate) : null,
+        deadline: data.deadline ? new Date(data.deadline) : null,
         createdById: session.userId,
         ...(assignedEmployees.length > 0
           ? {

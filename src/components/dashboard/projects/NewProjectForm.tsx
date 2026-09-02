@@ -86,6 +86,8 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
     projectType: '',
     totalAmount: '',
     depositPaid: '',
+    startDate: '',
+    deadline: '',
     hasSalesRep: false,
     salesRepId: '',
     salesCommissionPercent: '',
@@ -161,6 +163,8 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
         marketingProjectType: department === 'MARKETING' ? form.projectType || null : null,
         totalAmount: parseFloat(form.totalAmount) || 0,
         depositPaid: parseFloat(form.depositPaid) || 0,
+        startDate: form.startDate ? new Date(form.startDate).toISOString() : undefined,
+        deadline: form.deadline ? new Date(form.deadline).toISOString() : undefined,
         hasSalesRep: form.hasSalesRep,
         salesRepId: form.hasSalesRep ? form.salesRepId || null : null,
         salesCommissionPercent: form.hasSalesRep ? parseFloat(form.salesCommissionPercent) || null : null,
@@ -261,6 +265,26 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
                   <option key={t.value} value={t.value} style={{ background: '#121214' }}>{t.label}</option>
                 ))}
               </select>
+            </div>
+
+            <div>
+              <label style={labelStyle}>Start Date</label>
+              <input
+                type="date"
+                style={{ ...inputStyle, colorScheme: 'dark' }}
+                value={form.startDate}
+                onChange={(e) => update('startDate', e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label style={labelStyle}>Project Deadline</label>
+              <input
+                type="date"
+                style={{ ...inputStyle, colorScheme: 'dark' }}
+                value={form.deadline}
+                onChange={(e) => update('deadline', e.target.value)}
+              />
             </div>
 
             <div style={{ gridColumn: '1 / -1' }}>
