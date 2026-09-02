@@ -13,31 +13,42 @@ async function main() {
   const zeyadHash = await hash(zeyadPassword, 12);
   const yehiaHash = await hash(yehiaPassword, 12);
 
-  await prisma.user.upsert({
-    where: { email: 'zeyad@sirad.tech' },
-    update: {},
-    create: {
-      name: 'Zeyad',
-      email: 'zeyad@sirad.tech',
-      passwordHash: zeyadHash,
-      role: 'ZEYAD_TECH',
-    },
+  const existingZeyad = await prisma.user.findFirst({
+    where: { OR: [{ email: 'zeyad@sirad.com' }, { email: 'zeyad@sirad.tech' }] },
   });
+  if (existingZeyad) {
+    await prisma.user.update({
+      where: { id: existingZeyad.id },
+      data: { email: 'zeyad@sirad.com', passwordHash: zeyadHash, name: 'Zeyad', role: 'ZEYAD_TECH' },
+    });
+  } else {
+    await prisma.user.create({
+      data: { name: 'Zeyad', email: 'zeyad@sirad.com', passwordHash: zeyadHash, role: 'ZEYAD_TECH' },
+    });
+  }
 
-  await prisma.user.upsert({
-    where: { email: 'yehia@sirad.tech' },
-    update: {},
-    create: {
-      name: 'Yehia',
-      email: 'yehia@sirad.tech',
-      passwordHash: yehiaHash,
-      role: 'YEHIA_MARKETING',
-    },
+  const existingYehia = await prisma.user.findFirst({
+    where: { OR: [{ email: 'yehia@sirad.com' }, { email: 'yehia@sirad.tech' }] },
+  });
+  if (existingYehia) {
+    await prisma.user.update({
+      where: { id: existingYehia.id },
+      data: { email: 'yehia@sirad.com', passwordHash: yehiaHash, name: 'Yehia', role: 'YEHIA_MARKETING' },
+    });
+  } else {
+    await prisma.user.create({
+      data: { name: 'Yehia', email: 'yehia@sirad.com', passwordHash: yehiaHash, role: 'YEHIA_MARKETING' },
+    });
+  }
+
+  // Clean up any remaining legacy .tech records
+  await prisma.user.deleteMany({
+    where: { email: { in: ['zeyad@sirad.tech', 'yehia@sirad.tech'] } },
   });
 
   console.log('✅ Seeded 2 master accounts');
-  console.log('   → Zeyad (Tech Lead): zeyad@sirad.tech');
-  console.log('   → Yehia (Marketing Lead): yehia@sirad.tech');
+  console.log('   → Zeyad (Tech Lead): zeyad@sirad.com');
+  console.log('   → Yehia (Marketing Lead): yehia@sirad.com');
 }
 
 main()

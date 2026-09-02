@@ -250,7 +250,7 @@ export default function DashboardLoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="zeyad@sirad.tech"
+                  autoComplete="email"
                   required
                   style={{
                     width: '100%',
@@ -298,7 +298,7 @@ export default function DashboardLoginPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  autoComplete="current-password"
                   required
                   style={{
                     width: '100%',
