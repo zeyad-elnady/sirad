@@ -22,6 +22,7 @@ export default async function ClientsPage() {
         email: c.email,
         phone: c.phone,
         company: c.company,
+        notes: c.notes,
         projectCount: c._count.projects,
         createdAt: c.createdAt.toISOString(),
       }))}

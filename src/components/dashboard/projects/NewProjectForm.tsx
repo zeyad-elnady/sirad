@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import type { UserRole } from '@prisma/client';
-import { ArrowLeft, Save, Plus, X } from 'lucide-react';
+import { ArrowLeft, Save, Plus, X, Users, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
 const techTypes = [
@@ -21,11 +21,28 @@ const marketingTypes = [
   { value: 'PERFORMANCE_MARKETING', label: 'Performance Marketing' },
 ];
 
+export interface EmployeeOption {
+  id: string;
+  name: string;
+  role: string;
+  department: string;
+  monthlyRate: number | null;
+  hourlyRate: number | null;
+  isFreelancer: boolean;
+}
+
+export interface AssignedEmployeeInput {
+  employeeId: string;
+  assignedRole: string;
+  payAmount: string;
+}
+
 interface Props {
   role: UserRole;
   department: 'TECH' | 'MARKETING';
   clients: { id: string; name: string; company: string | null }[];
   salesReps: { id: string; name: string }[];
+  employees?: EmployeeOption[];
 }
 
 const inputStyle: React.CSSProperties = {
@@ -52,7 +69,7 @@ const labelStyle: React.CSSProperties = {
   marginBottom: '6px',
 };
 
-export default function NewProjectForm({ role, department, clients, salesReps }: Props) {
+export default function NewProjectForm({ role, department, clients, salesReps, employees = [] }: Props) {
   const router = useRouter();
   const accentColor = role === 'ZEYAD_TECH' ? '#B6FF33' : '#7C3AED';
   const projectTypes = department === 'TECH' ? techTypes : marketingTypes;
@@ -74,8 +91,41 @@ export default function NewProjectForm({ role, department, clients, salesReps }:
     salesCommissionPercent: '',
   });
 
+  const [assignedEmployees, setAssignedEmployees] = useState<AssignedEmployeeInput[]>([]);
+
   function update(field: string, value: string | boolean) {
     setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function addEmployeeRow() {
+    setAssignedEmployees((prev) => [
+      ...prev,
+      { employeeId: '', assignedRole: '', payAmount: '' },
+    ]);
+  }
+
+  function updateEmployeeRow(index: number, field: keyof AssignedEmployeeInput, value: string) {
+    setAssignedEmployees((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+
+      if (field === 'employeeId') {
+        const emp = employees.find((e) => e.id === value);
+        if (emp) {
+          if (!updated[index].assignedRole) {
+            updated[index].assignedRole = emp.role;
+          }
+          if (!updated[index].payAmount && (emp.hourlyRate || emp.monthlyRate)) {
+            updated[index].payAmount = String(emp.hourlyRate || emp.monthlyRate || '');
+          }
+        }
+      }
+      return updated;
+    });
+  }
+
+  function removeEmployeeRow(index: number) {
+    setAssignedEmployees((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function createNewClient() {
@@ -114,6 +164,13 @@ export default function NewProjectForm({ role, department, clients, salesReps }:
         hasSalesRep: form.hasSalesRep,
         salesRepId: form.hasSalesRep ? form.salesRepId || null : null,
         salesCommissionPercent: form.hasSalesRep ? parseFloat(form.salesCommissionPercent) || null : null,
+        assignedEmployees: assignedEmployees
+          .filter((ae) => ae.employeeId && ae.assignedRole)
+          .map((ae) => ({
+            employeeId: ae.employeeId,
+            assignedRole: ae.assignedRole,
+            payAmount: parseFloat(ae.payAmount) || 0,
+          })),
       };
 
       const res = await fetch('/api/dashboard/projects', {
@@ -378,6 +435,133 @@ export default function NewProjectForm({ role, department, clients, salesReps }:
                   />
                 </div>
               </motion.div>
+            )}
+          </div>
+
+          {/* Team Members / Assigned Employees */}
+          <div style={{ marginBottom: '28px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Users size={16} style={{ color: accentColor }} />
+                <h2 style={{ fontSize: '14px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', color: accentColor, margin: 0 }}>
+                  Assigned Team Members ({assignedEmployees.length})
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={addEmployeeRow}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '6px 14px',
+                  borderRadius: '8px',
+                  border: `1px solid ${accentColor}40`,
+                  background: `${accentColor}10`,
+                  color: accentColor,
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                <Plus size={14} /> Add Team Member
+              </button>
+            </div>
+
+            {assignedEmployees.length === 0 ? (
+              <div
+                style={{
+                  padding: '18px',
+                  borderRadius: '10px',
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '1px dashed rgba(255,255,255,0.08)',
+                  textAlign: 'center',
+                  color: '#6B6B70',
+                  fontSize: '13px',
+                }}
+              >
+                No team members assigned yet. You can assign employees now or later from the project page.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {assignedEmployees.map((ae, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr)) auto',
+                      gap: '12px',
+                      alignItems: 'end',
+                      padding: '14px',
+                      borderRadius: '10px',
+                      background: 'rgba(255,255,255,0.02)',
+                      border: '1px solid rgba(255,255,255,0.06)',
+                    }}
+                  >
+                    <div>
+                      <label style={labelStyle}>Employee *</label>
+                      <select
+                        style={{ ...inputStyle, cursor: 'pointer' }}
+                        value={ae.employeeId}
+                        onChange={(e) => updateEmployeeRow(index, 'employeeId', e.target.value)}
+                        required
+                      >
+                        <option value="" style={{ background: '#121214' }}>Choose employee...</option>
+                        {employees.map((emp) => (
+                          <option key={emp.id} value={emp.id} style={{ background: '#121214' }}>
+                            {emp.name} ({emp.role})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Assigned Role *</label>
+                      <input
+                        style={inputStyle}
+                        placeholder="e.g. Lead Developer"
+                        value={ae.assignedRole}
+                        onChange={(e) => updateEmployeeRow(index, 'assignedRole', e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label style={labelStyle}>Project Pay (EGP)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="100"
+                        style={inputStyle}
+                        placeholder="0.00"
+                        value={ae.payAmount}
+                        onChange={(e) => updateEmployeeRow(index, 'payAmount', e.target.value)}
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      title="Remove member"
+                      onClick={() => removeEmployeeRow(index)}
+                      style={{
+                        padding: '11px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(239,68,68,0.2)',
+                        background: 'rgba(239,68,68,0.06)',
+                        color: '#ef4444',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: '2px',
+                      }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
 

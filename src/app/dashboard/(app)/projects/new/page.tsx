@@ -9,10 +9,11 @@ export default async function NewProjectPage() {
 
   const department = getDepartmentForRole(session.role);
 
-  // Fetch clients and sales reps for the form dropdowns
-  const [clients, salesReps] = await Promise.all([
+  // Fetch clients, sales reps, and employees for the form dropdowns
+  const [clients, salesReps, employees] = await Promise.all([
     db.client.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } }),
     db.salesRep.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } }),
+    db.employee.findMany({ where: { isActive: true, department }, orderBy: { name: 'asc' } }),
   ]);
 
   return (
@@ -21,6 +22,15 @@ export default async function NewProjectPage() {
       department={department}
       clients={clients.map((c) => ({ id: c.id, name: c.name, company: c.company }))}
       salesReps={salesReps.map((s) => ({ id: s.id, name: s.name }))}
+      employees={employees.map((e) => ({
+        id: e.id,
+        name: e.name,
+        role: e.role,
+        department: e.department,
+        monthlyRate: e.monthlyRate,
+        hourlyRate: e.hourlyRate,
+        isFreelancer: e.isFreelancer,
+      }))}
     />
   );
 }

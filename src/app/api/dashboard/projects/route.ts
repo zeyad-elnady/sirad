@@ -61,6 +61,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Cannot create project in other department' }, { status: 403 });
     }
 
+    const assignedEmployees = Array.isArray(body.assignedEmployees)
+      ? body.assignedEmployees.filter((ae: any) => ae.employeeId && ae.assignedRole)
+      : [];
+
     const project = await db.project.create({
       data: {
         title: data.title,
@@ -76,8 +80,20 @@ export async function POST(request: Request) {
         salesCommissionPercent: data.salesCommissionPercent,
         clientId: data.clientId,
         createdById: session.userId,
+        ...(assignedEmployees.length > 0
+          ? {
+              employees: {
+                create: assignedEmployees.map((ae: any) => ({
+                  employeeId: ae.employeeId,
+                  assignedRole: ae.assignedRole,
+                  payAmount: parseFloat(ae.payAmount) || 0,
+                  notes: ae.notes || null,
+                })),
+              },
+            }
+          : {}),
       },
-      include: { client: true, salesRep: true },
+      include: { client: true, salesRep: true, employees: { include: { employee: true } } },
     });
 
     // Log audit

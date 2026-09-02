@@ -15,18 +15,24 @@ export default async function ProjectDetailPage({
   const { id } = await params;
   const department = getDepartmentForRole(session.role);
 
-  const project = await db.project.findUnique({
-    where: { id },
-    include: {
-      client: true,
-      salesRep: true,
-      contract: { include: { installments: { orderBy: { dueDate: 'asc' } } } },
-      employees: { include: { employee: true } },
-      recurringExpenses: { orderBy: { createdAt: 'desc' } },
-      productionDetail: true,
-      createdBy: { select: { name: true } },
-    },
-  });
+  const [project, availableEmployees] = await Promise.all([
+    db.project.findUnique({
+      where: { id },
+      include: {
+        client: true,
+        salesRep: true,
+        contract: { include: { installments: { orderBy: { dueDate: 'asc' } } } },
+        employees: { include: { employee: true } },
+        recurringExpenses: { orderBy: { createdAt: 'desc' } },
+        productionDetail: true,
+        createdBy: { select: { name: true } },
+      },
+    }),
+    db.employee.findMany({
+      where: { isActive: true, department },
+      orderBy: { name: 'asc' },
+    }),
+  ]);
 
   if (!project || project.department !== department) notFound();
 
@@ -88,6 +94,15 @@ export default async function ProjectDetailPage({
       role={session.role}
       project={serialized}
       profit={profit}
+      availableEmployees={availableEmployees.map((e) => ({
+        id: e.id,
+        name: e.name,
+        role: e.role,
+        department: e.department,
+        monthlyRate: e.monthlyRate,
+        hourlyRate: e.hourlyRate,
+        isFreelancer: e.isFreelancer,
+      }))}
     />
   );
 }
