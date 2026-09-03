@@ -40,21 +40,50 @@ export default function EmployeeProfileClient({ role, employee, balance, project
     (employee.projectAssignments || []).map((pa: any) => pa.projectId)
   );
 
-  // Map of project financial stats for this employee (agreed, paid, remaining)
-  const projectStatsMap: Record<string, { payAmount: number; paid: number; remaining: number }> = {};
+  // Map of project financial stats for this employee (agreed, paid, remaining, loans)
+  const projectStatsMap: Record<
+    string,
+    {
+      payAmount: number;
+      paid: number;
+      remaining: number;
+      loanAmount: number;
+      directPaid: number;
+    }
+  > = {};
 
   (employee.projectAssignments || []).forEach((pa: any) => {
-    const paid = (employee.transactions || [])
-      .filter(
-        (tx: any) =>
-          tx.projectId === pa.projectId &&
-          ['SALARY', 'PARTIAL_PAYMENT', 'DEPOSIT', 'TASK_PAYMENT', 'ADVANCE'].includes(tx.type)
+    const projectTx = (employee.transactions || []).filter(
+      (tx: any) => tx.projectId === pa.projectId
+    );
+
+    const directPaid = projectTx
+      .filter((tx: any) =>
+        ['SALARY', 'PARTIAL_PAYMENT', 'DEPOSIT', 'TASK_PAYMENT', 'ADVANCE'].includes(tx.type)
       )
       .reduce((sum: number, tx: any) => sum + (Number(tx.amount) || 0), 0);
 
-    const remaining = Math.max(0, (Number(pa.payAmount) || 0) - paid);
+    const loanAmount = projectTx
+      .filter((tx: any) => tx.type === 'LOAN')
+      .reduce((sum: number, tx: any) => sum + (Number(tx.amount) || 0), 0);
+
+    const deductionAmount = projectTx
+      .filter((tx: any) => tx.type === 'DEDUCTION')
+      .reduce((sum: number, tx: any) => sum + (Number(tx.amount) || 0), 0);
+
+    const bonusAmount = projectTx
+      .filter((tx: any) => tx.type === 'BONUS')
+      .reduce((sum: number, tx: any) => sum + (Number(tx.amount) || 0), 0);
+
+    // Total drawn / received by employee against this project
+    const paid = directPaid + loanAmount + deductionAmount;
+    const agreedWithBonus = (Number(pa.payAmount) || 0) + bonusAmount;
+    const remaining = Math.max(0, agreedWithBonus - paid);
+
     projectStatsMap[pa.projectId] = {
       payAmount: Number(pa.payAmount) || 0,
+      directPaid,
+      loanAmount,
       paid,
       remaining,
     };
@@ -67,6 +96,7 @@ export default function EmployeeProfileClient({ role, employee, balance, project
       title: pa.project?.title || 'Unknown Project',
       payAmount: pa.payAmount,
       remaining: stats ? stats.remaining : pa.payAmount,
+      loanAmount: stats ? stats.loanAmount : 0,
     };
   });
 
@@ -360,8 +390,15 @@ export default function EmployeeProfileClient({ role, employee, balance, project
                       <td style={{ padding: '12px 14px', fontSize: '13px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', color: '#E8E4E0' }}>
                         {formatCurrency(stats.payAmount)}
                       </td>
-                      <td style={{ padding: '12px 14px', fontSize: '13px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', color: '#22C55E' }}>
-                        {formatCurrency(stats.paid)}
+                      <td style={{ padding: '12px 14px' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', color: '#22C55E' }}>
+                          {formatCurrency(stats.paid)}
+                        </div>
+                        {stats.loanAmount > 0 && (
+                          <div style={{ fontSize: '10px', color: '#F59E0B', marginTop: '2px', fontWeight: 500 }}>
+                            incl. {formatCurrency(stats.loanAmount)} loan
+                          </div>
+                        )}
                       </td>
                       <td style={{ padding: '12px 14px', fontSize: '13px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', color: stats.remaining > 0 ? '#F59E0B' : '#22C55E' }}>
                         {stats.remaining > 0 ? formatCurrency(stats.remaining) : 'Fully Paid ✓'}

@@ -140,8 +140,8 @@ export async function calculateEmployeeBalance(employeeId: string): Promise<Empl
     .filter((t) => t.type === 'DEDUCTION')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  // Outstanding = what's earned - what's been paid out (payments + advances reduce what's owed)
-  const outstandingBalance = totalEarned - totalPaid - totalAdvances + totalBonuses - totalDeductions;
+  // Outstanding = what's earned - what's been paid out (payments, advances, loans, and deductions reduce what's owed)
+  const outstandingBalance = Math.max(0, totalEarned + totalBonuses - totalPaid - totalAdvances - totalLoans - totalDeductions);
 
   return {
     totalEarned,

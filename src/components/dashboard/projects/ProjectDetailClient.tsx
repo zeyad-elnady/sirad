@@ -292,23 +292,44 @@ export default function ProjectDetailClient({
       ? ((computedNetProfit / p.totalAmount) * 100).toFixed(1)
       : '0.0';
 
-  // Map employeeId -> { paid: number, remaining: number, payAmount: number }
+  // Map employeeId -> { paid: number, remaining: number, payAmount: number, loans: number, directPaid: number }
   const employeePaymentsMap = useMemo(() => {
-    const map: Record<string, { paid: number; remaining: number; payAmount: number }> = {};
+    const map: Record<
+      string,
+      { paid: number; remaining: number; payAmount: number; loans: number; directPaid: number }
+    > = {};
     const employees = (p.employees as any[]) || [];
     employees.forEach((pe) => {
-      const paid = projectTransactions
-        .filter(
-          (tx) =>
-            tx.employeeId === pe.employeeId &&
-            ['SALARY', 'PARTIAL_PAYMENT', 'DEPOSIT', 'TASK_PAYMENT', 'ADVANCE'].includes(tx.type)
+      const empTx = projectTransactions.filter((tx) => tx.employeeId === pe.employeeId);
+
+      const directPaid = empTx
+        .filter((tx) =>
+          ['SALARY', 'PARTIAL_PAYMENT', 'DEPOSIT', 'TASK_PAYMENT', 'ADVANCE'].includes(tx.type)
         )
         .reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
-      const payAmount = Number(pe.payAmount) || 0;
+
+      const loans = empTx
+        .filter((tx) => tx.type === 'LOAN')
+        .reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
+
+      const deductions = empTx
+        .filter((tx) => tx.type === 'DEDUCTION')
+        .reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
+
+      const bonus = empTx
+        .filter((tx) => tx.type === 'BONUS')
+        .reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
+
+      const totalDrawn = directPaid + loans + deductions;
+      const payAmount = (Number(pe.payAmount) || 0) + bonus;
+      const remaining = Math.max(0, payAmount - totalDrawn);
+
       map[pe.employeeId] = {
-        paid,
-        remaining: Math.max(0, payAmount - paid),
+        paid: totalDrawn,
+        remaining,
         payAmount,
+        loans,
+        directPaid,
       };
     });
     return map;
@@ -824,7 +845,14 @@ export default function ProjectDetailClient({
                       </div>
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '11px', color: '#22C55E' }}>Paid to Date</span>
+                        <div>
+                          <span style={{ fontSize: '11px', color: '#22C55E' }}>Paid to Date</span>
+                          {empStats.loans > 0 && (
+                            <span style={{ fontSize: '10px', color: '#F59E0B', display: 'block' }}>
+                              incl. {formatCurrency(empStats.loans)} loan
+                            </span>
+                          )}
+                        </div>
                         <span style={{ fontSize: '12px', fontWeight: 600, color: '#22C55E', fontFamily: '"Space Grotesk", sans-serif' }}>
                           {formatCurrency(empStats.paid)}
                         </span>
