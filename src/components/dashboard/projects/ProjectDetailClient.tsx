@@ -85,6 +85,17 @@ const installmentStatusColors: Record<string, string> = {
   OVERDUE: '#DC2626',
 };
 
+const txTypeColors: Record<string, string> = {
+  SALARY: '#22C55E',
+  PARTIAL_PAYMENT: '#3B82F6',
+  DEPOSIT: '#7C3AED',
+  LOAN: '#F59E0B',
+  ADVANCE: '#F59E0B',
+  TASK_PAYMENT: '#22C55E',
+  BONUS: '#10B981',
+  DEDUCTION: '#DC2626',
+};
+
 export default function ProjectDetailClient({
   role,
   project,
@@ -119,6 +130,55 @@ export default function ProjectDetailClient({
   const [isUpdating, setIsUpdating] = useState(false);
   const [editError, setEditError] = useState('');
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+  // Breakdown & Quick Payment State
+  const [breakdownEmployee, setBreakdownEmployee] = useState<any | null>(null);
+  const [showQuickPayment, setShowQuickPayment] = useState(false);
+  const [quickPaymentForm, setQuickPaymentForm] = useState({
+    type: 'SALARY',
+    amount: '',
+    date: new Date().toISOString().split('T')[0],
+    notes: '',
+  });
+  const [quickPaymentLoading, setQuickPaymentLoading] = useState(false);
+  const [quickPaymentError, setQuickPaymentError] = useState('');
+
+  async function handleQuickPayment(e: React.FormEvent) {
+    e.preventDefault();
+    if (!breakdownEmployee) return;
+    setQuickPaymentLoading(true);
+    setQuickPaymentError('');
+    try {
+      const res = await fetch(`/api/dashboard/employees/${breakdownEmployee.employeeId}/transactions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: quickPaymentForm.type,
+          amount: parseFloat(quickPaymentForm.amount),
+          projectId: p.id,
+          date: quickPaymentForm.date ? new Date(quickPaymentForm.date).toISOString() : new Date().toISOString(),
+          notes: quickPaymentForm.notes || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setQuickPaymentError(data.error || 'Failed to record payment');
+        return;
+      }
+      setShowQuickPayment(false);
+      setQuickPaymentForm({
+        type: 'SALARY',
+        amount: '',
+        date: new Date().toISOString().split('T')[0],
+        notes: '',
+      });
+      router.refresh();
+    } catch {
+      setQuickPaymentError('Something went wrong. Please try again.');
+    } finally {
+      setQuickPaymentLoading(false);
+    }
+  }
 
   function openEditModal() {
     setEditForm({
@@ -823,18 +883,48 @@ export default function ProjectDetailClient({
                     paid: 0,
                     remaining: Number(pe.payAmount || 0),
                     payAmount: Number(pe.payAmount || 0),
+                    loans: 0,
+                    directPaid: 0,
                   };
-                  const percent = empStats.payAmount > 0
-                    ? Math.min(100, Math.round((empStats.paid / empStats.payAmount) * 100))
-                    : 0;
+                  const percent =
+                    empStats.payAmount > 0
+                      ? Math.min(100, Math.round((empStats.paid / empStats.payAmount) * 100))
+                      : 0;
                   return (
                     <div
+                      onClick={() => {
+                        setBreakdownEmployee(pe);
+                        setShowQuickPayment(false);
+                        setQuickPaymentError('');
+                        setQuickPaymentForm({
+                          type: 'SALARY',
+                          amount: empStats.remaining > 0 ? String(empStats.remaining) : '',
+                          date: new Date().toISOString().split('T')[0],
+                          notes: '',
+                        });
+                      }}
+                      title="Tap to see breakdown by dates"
                       style={{
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '6px',
+                        gap: '8px',
                         paddingTop: '10px',
+                        marginTop: '4px',
                         borderTop: '1px solid rgba(255,255,255,0.04)',
+                        cursor: 'pointer',
+                        padding: '10px 12px',
+                        borderRadius: '10px',
+                        background: 'rgba(255,255,255,0.02)',
+                        border: '1px solid rgba(255,255,255,0.05)',
+                        transition: 'all 0.2s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                        e.currentTarget.style.borderColor = `${accentColor}50`;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -878,6 +968,13 @@ export default function ProjectDetailClient({
                             transition: 'width 0.3s',
                           }}
                         />
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
+                        <span style={{ fontSize: '10px', color: accentColor, fontWeight: 600 }}>
+                          🔍 Tap for dates breakdown
+                        </span>
+                        <span style={{ fontSize: '10px', color: '#8E8E93' }}>{percent}%</span>
                       </div>
                     </div>
                   );
@@ -1565,6 +1662,240 @@ export default function ProjectDetailClient({
                 </div>
               </div>
             </motion.form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* Employee Payment Breakdown Modal */}
+      <AnimatePresence>
+        {breakdownEmployee && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.75)',
+              backdropFilter: 'blur(8px)',
+              zIndex: 60,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px',
+            }}
+            onClick={() => setBreakdownEmployee(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: '#121214',
+                borderRadius: '16px',
+                padding: '28px',
+                width: '100%',
+                maxWidth: '520px',
+                border: '1px solid rgba(255,255,255,0.08)',
+                boxShadow: '0 20px 50px rgba(0,0,0,0.6)',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div>
+                  <h2 style={{ fontSize: '18px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', color: '#FFFFFF', margin: 0 }}>
+                    Payment & Loan Breakdown
+                  </h2>
+                  <p style={{ fontSize: '12px', color: '#8E8E93', marginTop: '4px', margin: 0 }}>
+                    <strong style={{ color: '#FFFFFF' }}>{breakdownEmployee.employee.name}</strong> • {breakdownEmployee.assignedRole}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setBreakdownEmployee(null)}
+                  style={{ background: 'none', border: 'none', color: '#8E8E93', cursor: 'pointer', padding: '4px' }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {(() => {
+                const empStats = employeePaymentsMap[breakdownEmployee.employeeId] || {
+                  paid: 0,
+                  remaining: Number(breakdownEmployee.payAmount || 0),
+                  payAmount: Number(breakdownEmployee.payAmount || 0),
+                  loans: 0,
+                };
+                const empTxs = projectTransactions.filter(
+                  (tx) => tx.employeeId === breakdownEmployee.employeeId
+                );
+
+                return (
+                  <div>
+                    {/* Top 3 summary chips */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '20px' }}>
+                      <div style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                        <div style={{ fontSize: '10px', color: '#8E8E93', textTransform: 'uppercase' }}>Agreed Salary</div>
+                        <div style={{ fontSize: '15px', fontWeight: 700, color: '#FFFFFF', fontFamily: '"Space Grotesk", sans-serif', marginTop: '4px' }}>
+                          {formatCurrency(empStats.payAmount)}
+                        </div>
+                      </div>
+                      <div style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                        <div style={{ fontSize: '10px', color: '#22C55E', textTransform: 'uppercase' }}>Paid to Date</div>
+                        <div style={{ fontSize: '15px', fontWeight: 700, color: '#22C55E', fontFamily: '"Space Grotesk", sans-serif', marginTop: '4px' }}>
+                          {formatCurrency(empStats.paid)}
+                        </div>
+                        {empStats.loans > 0 && (
+                          <div style={{ fontSize: '10px', color: '#F59E0B', marginTop: '2px' }}>
+                            (incl. {formatCurrency(empStats.loans)} loan)
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                        <div style={{ fontSize: '10px', color: empStats.remaining > 0 ? '#F59E0B' : '#22C55E', textTransform: 'uppercase' }}>Remaining Owed</div>
+                        <div style={{ fontSize: '15px', fontWeight: 700, color: empStats.remaining > 0 ? '#F59E0B' : '#22C55E', fontFamily: '"Space Grotesk", sans-serif', marginTop: '4px' }}>
+                          {empStats.remaining > 0 ? formatCurrency(empStats.remaining) : '0 ✓'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <h4 style={{ fontSize: '12px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
+                        Transactions by Date ({empTxs.length})
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => setShowQuickPayment(!showQuickPayment)}
+                        style={{
+                          background: 'none',
+                          border: `1px solid ${accentColor}40`,
+                          borderRadius: '6px',
+                          padding: '4px 10px',
+                          color: accentColor,
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {showQuickPayment ? 'Hide Form' : '+ Record Payment'}
+                      </button>
+                    </div>
+
+                    {/* Quick payment form */}
+                    {showQuickPayment && (
+                      <form onSubmit={handleQuickPayment} style={{ padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', marginBottom: '16px' }}>
+                        {quickPaymentError && (
+                          <div style={{ padding: '8px 12px', borderRadius: '8px', background: 'rgba(239,68,68,0.1)', color: '#EF4444', fontSize: '12px', marginBottom: '12px' }}>
+                            {quickPaymentError}
+                          </div>
+                        )}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '10px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', marginBottom: '4px' }}>Type</label>
+                            <select
+                              style={{ width: '100%', padding: '8px 12px', background: '#18181B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#FFFFFF', fontSize: '12px' }}
+                              value={quickPaymentForm.type}
+                              onChange={(e) => setQuickPaymentForm({ ...quickPaymentForm, type: e.target.value })}
+                            >
+                              {['SALARY', 'PARTIAL_PAYMENT', 'DEPOSIT', 'LOAN', 'ADVANCE', 'TASK_PAYMENT', 'BONUS', 'DEDUCTION'].map((t) => (
+                                <option key={t} value={t} style={{ background: '#18181B' }}>{t.replace(/_/g, ' ')}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '10px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', marginBottom: '4px' }}>Date *</label>
+                            <input
+                              type="date"
+                              required
+                              style={{ width: '100%', padding: '8px 12px', background: '#18181B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#FFFFFF', fontSize: '12px' }}
+                              value={quickPaymentForm.date}
+                              onChange={(e) => setQuickPaymentForm({ ...quickPaymentForm, date: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                        <div style={{ marginBottom: '10px' }}>
+                          <label style={{ display: 'block', fontSize: '10px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', marginBottom: '4px' }}>Amount (EGP) *</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            required
+                            placeholder="Amount in EGP"
+                            style={{ width: '100%', padding: '8px 12px', background: '#18181B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#FFFFFF', fontSize: '12px' }}
+                            value={quickPaymentForm.amount}
+                            onChange={(e) => setQuickPaymentForm({ ...quickPaymentForm, amount: e.target.value })}
+                          />
+                        </div>
+                        <div style={{ marginBottom: '12px' }}>
+                          <label style={{ display: 'block', fontSize: '10px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', marginBottom: '4px' }}>Notes (optional)</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Deposit for production week"
+                            style={{ width: '100%', padding: '8px 12px', background: '#18181B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#FFFFFF', fontSize: '12px' }}
+                            value={quickPaymentForm.notes}
+                            onChange={(e) => setQuickPaymentForm({ ...quickPaymentForm, notes: e.target.value })}
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={quickPaymentLoading}
+                          style={{
+                            width: '100%',
+                            padding: '10px',
+                            borderRadius: '8px',
+                            border: 'none',
+                            background: accentColor,
+                            color: accentColor === '#B6FF33' ? '#121f00' : '#FFFFFF',
+                            fontSize: '13px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {quickPaymentLoading ? 'Saving...' : 'Save Payment with Date'}
+                        </button>
+                      </form>
+                    )}
+
+                    {/* Transactions list */}
+                    {empTxs.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '240px', overflowY: 'auto' }}>
+                        {empTxs.map((tx) => (
+                          <div
+                            key={tx.id}
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              padding: '10px 14px',
+                              borderRadius: '10px',
+                              background: 'rgba(255,255,255,0.02)',
+                              border: '1px solid rgba(255,255,255,0.04)',
+                            }}
+                          >
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '6px', background: `${txTypeColors[tx.type] || '#6B6B70'}20`, color: txTypeColors[tx.type] || '#6B6B70', fontWeight: 600 }}>
+                                  {tx.type.replace(/_/g, ' ')}
+                                </span>
+                                <span style={{ fontSize: '12px', color: '#8E8E93' }}>
+                                  {format(new Date(tx.date), 'MMM d, yyyy')}
+                                </span>
+                              </div>
+                              {tx.notes && <div style={{ fontSize: '11px', color: '#6B6B70', marginTop: '4px' }}>{tx.notes}</div>}
+                            </div>
+                            <div style={{ fontSize: '14px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', color: txTypeColors[tx.type] || '#FFFFFF' }}>
+                              {formatCurrency(tx.amount)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p style={{ fontSize: '13px', color: '#6B6B70', margin: 0 }}>No payments or loans recorded yet for this project.</p>
+                    )}
+                  </div>
+                );
+              })()}
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -34,7 +34,14 @@ export default function EmployeeProfileClient({ role, employee, balance, project
   const [isSaving, setIsSaving] = useState(false);
   const [editError, setEditError] = useState('');
   const [txError, setTxError] = useState('');
-  const [txForm, setTxForm] = useState({ type: 'SALARY', amount: '', projectId: '', notes: '' });
+  const [txForm, setTxForm] = useState({
+    type: 'SALARY',
+    amount: '',
+    projectId: '',
+    date: new Date().toISOString().split('T')[0],
+    notes: '',
+  });
+  const [breakdownProject, setBreakdownProject] = useState<any | null>(null);
 
   const assignedProjectIds = new Set(
     (employee.projectAssignments || []).map((pa: any) => pa.projectId)
@@ -109,6 +116,7 @@ export default function EmployeeProfileClient({ role, employee, balance, project
       type: 'SALARY',
       projectId,
       amount: remainingAmount > 0 ? String(remainingAmount) : '',
+      date: new Date().toISOString().split('T')[0],
       notes: '',
     });
     setTxError('');
@@ -195,7 +203,13 @@ export default function EmployeeProfileClient({ role, employee, balance, project
         return;
       }
       setShowTxForm(false);
-      setTxForm({ type: 'SALARY', amount: '', projectId: '', notes: '' });
+      setTxForm({
+        type: 'SALARY',
+        amount: '',
+        projectId: '',
+        date: new Date().toISOString().split('T')[0],
+        notes: '',
+      });
       router.refresh();
     } catch {
       setTxError('Something went wrong. Please try again.');
@@ -390,9 +404,14 @@ export default function EmployeeProfileClient({ role, employee, balance, project
                       <td style={{ padding: '12px 14px', fontSize: '13px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', color: '#E8E4E0' }}>
                         {formatCurrency(stats.payAmount)}
                       </td>
-                      <td style={{ padding: '12px 14px' }}>
-                        <div style={{ fontSize: '13px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', color: '#22C55E' }}>
+                      <td
+                        style={{ padding: '12px 14px', cursor: 'pointer' }}
+                        onClick={() => setBreakdownProject(pa)}
+                        title="Tap to see breakdown by dates"
+                      >
+                        <div style={{ fontSize: '13px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', color: '#22C55E', display: 'flex', alignItems: 'center', gap: '4px' }}>
                           {formatCurrency(stats.paid)}
+                          <span style={{ fontSize: '10px', color: '#8E8E93' }}>🔍</span>
                         </div>
                         {stats.loanAmount > 0 && (
                           <div style={{ fontSize: '10px', color: '#F59E0B', marginTop: '2px', fontWeight: 500 }}>
@@ -400,8 +419,17 @@ export default function EmployeeProfileClient({ role, employee, balance, project
                           </div>
                         )}
                       </td>
-                      <td style={{ padding: '12px 14px', fontSize: '13px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', color: stats.remaining > 0 ? '#F59E0B' : '#22C55E' }}>
-                        {stats.remaining > 0 ? formatCurrency(stats.remaining) : 'Fully Paid ✓'}
+                      <td
+                        style={{ padding: '12px 14px', cursor: 'pointer' }}
+                        onClick={() => setBreakdownProject(pa)}
+                        title="Tap to see breakdown by dates"
+                      >
+                        <div style={{ fontSize: '13px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', color: stats.remaining > 0 ? '#F59E0B' : '#22C55E' }}>
+                          {stats.remaining > 0 ? formatCurrency(stats.remaining) : 'Fully Paid ✓'}
+                        </div>
+                        <div style={{ fontSize: '10px', color: accentColor, marginTop: '2px', fontWeight: 600 }}>
+                          Tap for dates
+                        </div>
                       </td>
                       <td style={{ padding: '12px 14px', minWidth: '120px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -833,6 +861,19 @@ export default function EmployeeProfileClient({ role, employee, balance, project
 
                 <div>
                   <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                    Payment Date *
+                  </label>
+                  <input
+                    style={inputStyle}
+                    type="date"
+                    value={txForm.date}
+                    onChange={(e) => setTxForm({ ...txForm, date: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
                     Amount (EGP) *
                   </label>
                   <input style={inputStyle} type="number" step="0.01" placeholder="Amount (EGP)" value={txForm.amount} onChange={(e) => setTxForm({ ...txForm, amount: e.target.value })} required />
@@ -850,6 +891,164 @@ export default function EmployeeProfileClient({ role, employee, balance, project
                 </button>
               </div>
             </motion.form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* Project Breakdown Modal */}
+      <AnimatePresence>
+        {breakdownProject && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.7)',
+              backdropFilter: 'blur(8px)',
+              zIndex: 60,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px',
+            }}
+            onClick={() => setBreakdownProject(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: '#121214',
+                borderRadius: '16px',
+                padding: '28px',
+                width: '100%',
+                maxWidth: '520px',
+                border: '1px solid rgba(255,255,255,0.08)',
+                boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div>
+                  <h2 style={{ fontSize: '18px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', color: '#FFFFFF', margin: 0 }}>
+                    Payment Breakdown
+                  </h2>
+                  <p style={{ fontSize: '12px', color: '#8E8E93', marginTop: '4px', margin: 0 }}>
+                    Project: <strong style={{ color: '#FFFFFF' }}>{breakdownProject.project.title}</strong> • {employee.name}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setBreakdownProject(null)}
+                  style={{ background: 'none', border: 'none', color: '#8E8E93', cursor: 'pointer', padding: '4px' }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Stats row */}
+              {(() => {
+                const stats = projectStatsMap[breakdownProject.projectId] || { payAmount: breakdownProject.payAmount, paid: 0, remaining: breakdownProject.payAmount, loanAmount: 0, directPaid: 0 };
+                const projectTxs = (employee.transactions || []).filter((tx: any) => tx.projectId === breakdownProject.projectId);
+                return (
+                  <div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '20px' }}>
+                      <div style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                        <div style={{ fontSize: '10px', color: '#8E8E93', textTransform: 'uppercase' }}>Agreed Salary</div>
+                        <div style={{ fontSize: '15px', fontWeight: 700, color: '#FFFFFF', fontFamily: '"Space Grotesk", sans-serif', marginTop: '4px' }}>
+                          {formatCurrency(stats.payAmount)}
+                        </div>
+                      </div>
+                      <div style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                        <div style={{ fontSize: '10px', color: '#22C55E', textTransform: 'uppercase' }}>Paid / Drawn</div>
+                        <div style={{ fontSize: '15px', fontWeight: 700, color: '#22C55E', fontFamily: '"Space Grotesk", sans-serif', marginTop: '4px' }}>
+                          {formatCurrency(stats.paid)}
+                        </div>
+                        {stats.loanAmount > 0 && (
+                          <div style={{ fontSize: '10px', color: '#F59E0B', marginTop: '2px' }}>
+                            (incl. {formatCurrency(stats.loanAmount)} loan)
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                        <div style={{ fontSize: '10px', color: stats.remaining > 0 ? '#F59E0B' : '#22C55E', textTransform: 'uppercase' }}>Remaining Owed</div>
+                        <div style={{ fontSize: '15px', fontWeight: 700, color: stats.remaining > 0 ? '#F59E0B' : '#22C55E', fontFamily: '"Space Grotesk", sans-serif', marginTop: '4px' }}>
+                          {stats.remaining > 0 ? formatCurrency(stats.remaining) : '0 ✓'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <h4 style={{ fontSize: '12px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>
+                      Transactions by Date ({projectTxs.length})
+                    </h4>
+
+                    {projectTxs.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', maxHeight: '220px', overflowY: 'auto' }}>
+                        {projectTxs.map((tx: any) => (
+                          <div
+                            key={tx.id}
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              padding: '10px 14px',
+                              borderRadius: '10px',
+                              background: 'rgba(255,255,255,0.02)',
+                              border: '1px solid rgba(255,255,255,0.04)',
+                            }}
+                          >
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '6px', background: `${txTypeColors[tx.type] || '#6B6B70'}20`, color: txTypeColors[tx.type] || '#6B6B70', fontWeight: 600 }}>
+                                  {tx.type.replace(/_/g, ' ')}
+                                </span>
+                                <span style={{ fontSize: '12px', color: '#8E8E93' }}>
+                                  {format(new Date(tx.date), 'MMM d, yyyy')}
+                                </span>
+                              </div>
+                              {tx.notes && <div style={{ fontSize: '11px', color: '#6B6B70', marginTop: '4px' }}>{tx.notes}</div>}
+                            </div>
+                            <div style={{ fontSize: '14px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', color: txTypeColors[tx.type] || '#FFFFFF' }}>
+                              {formatCurrency(tx.amount)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p style={{ fontSize: '13px', color: '#6B6B70', marginBottom: '20px' }}>No transactions recorded yet for this project.</p>
+                    )}
+
+                    {stats.remaining > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const projId = breakdownProject.projectId;
+                          const rem = stats.remaining;
+                          setBreakdownProject(null);
+                          openPaymentForProject(projId, rem);
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '12px',
+                          borderRadius: '10px',
+                          border: 'none',
+                          background: accentColor,
+                          color: accentColor === '#B6FF33' ? '#121f00' : '#FFFFFF',
+                          fontSize: '13px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        + Pay Remaining Owed ({formatCurrency(stats.remaining)})
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
