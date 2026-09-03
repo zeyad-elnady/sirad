@@ -128,6 +128,45 @@ export default function ProjectDetailClient({
     salesRepId: p.salesRepId || '',
     salesCommissionPercent: p.salesCommissionPercent ? String(p.salesCommissionPercent) : '',
   });
+  const [salesRepList, setSalesRepList] = useState<{ id: string; name: string }[]>(salesReps);
+  const [showNewSalesRepInEdit, setShowNewSalesRepInEdit] = useState(false);
+  const [newSalesRepNameInEdit, setNewSalesRepNameInEdit] = useState('');
+  const [isCreatingSalesRepInEdit, setIsCreatingSalesRepInEdit] = useState(false);
+  const [salesRepErrorInEdit, setSalesRepErrorInEdit] = useState('');
+
+  async function createNewSalesRepInEdit() {
+    if (!newSalesRepNameInEdit.trim()) return;
+    setIsCreatingSalesRepInEdit(true);
+    setSalesRepErrorInEdit('');
+    try {
+      const res = await fetch('/api/dashboard/sales-reps', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newSalesRepNameInEdit.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSalesRepErrorInEdit(data.error || 'Failed to add sales rep');
+        return;
+      }
+      if (data.salesRep) {
+        setSalesRepList((prev) => [...prev, data.salesRep]);
+        setEditForm((prev) => ({
+          ...prev,
+          hasSalesRep: true,
+          salesRepId: data.salesRep.id,
+        }));
+        setShowNewSalesRepInEdit(false);
+        setNewSalesRepNameInEdit('');
+        router.refresh();
+      }
+    } catch {
+      setSalesRepErrorInEdit('Network error. Please try again.');
+    } finally {
+      setIsCreatingSalesRepInEdit(false);
+    }
+  }
+
   const [isUpdating, setIsUpdating] = useState(false);
   const [editError, setEditError] = useState('');
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
@@ -1584,6 +1623,180 @@ export default function ProjectDetailClient({
                     </select>
                   </div>
                 )}
+
+                {/* Sales Representative */}
+                <div style={{ paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', margin: 0 }}>
+                      <div
+                        style={{
+                          width: '36px',
+                          height: '20px',
+                          borderRadius: '10px',
+                          background: editForm.hasSalesRep ? accentColor : 'rgba(255,255,255,0.1)',
+                          position: 'relative',
+                          transition: 'background 0.2s',
+                          cursor: 'pointer',
+                        }}
+                        onClick={() => setEditForm((prev) => ({ ...prev, hasSalesRep: !prev.hasSalesRep }))}
+                      >
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: '2px',
+                            left: editForm.hasSalesRep ? '18px' : '2px',
+                            width: '16px',
+                            height: '16px',
+                            borderRadius: '50%',
+                            background: '#fff',
+                            transition: 'left 0.2s',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                          }}
+                        />
+                      </div>
+                      <span style={{ fontSize: '12px', color: '#E8E4E0', fontWeight: 600 }}>Closed by a Sales Rep</span>
+                    </label>
+
+                    {!showNewSalesRepInEdit ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditForm((prev) => ({ ...prev, hasSalesRep: true }));
+                          setShowNewSalesRepInEdit(true);
+                        }}
+                        style={{
+                          padding: '5px 12px',
+                          borderRadius: '8px',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                          background: 'rgba(255,255,255,0.03)',
+                          color: '#E8E4E0',
+                          fontSize: '11px',
+                          fontWeight: 500,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        <Plus size={12} /> New Sales Rep
+                      </button>
+                    ) : (
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <input
+                          style={{
+                            width: '150px',
+                            padding: '6px 10px',
+                            fontSize: '12px',
+                            background: 'rgba(255,255,255,0.04)',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            borderRadius: '8px',
+                            color: '#E8E4E0',
+                            outline: 'none',
+                          }}
+                          placeholder="Sales rep name"
+                          value={newSalesRepNameInEdit}
+                          onChange={(e) => setNewSalesRepNameInEdit(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), createNewSalesRepInEdit())}
+                          autoFocus
+                        />
+                        <button
+                          type="button"
+                          onClick={createNewSalesRepInEdit}
+                          disabled={isCreatingSalesRepInEdit}
+                          style={{
+                            padding: '6px 10px',
+                            borderRadius: '8px',
+                            background: accentColor,
+                            border: 'none',
+                            color: accentColor === '#B6FF33' ? '#121f00' : '#fff',
+                            cursor: 'pointer',
+                            fontWeight: 600,
+                            fontSize: '11px',
+                          }}
+                        >
+                          Add
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowNewSalesRepInEdit(false)}
+                          style={{
+                            padding: '6px 8px',
+                            borderRadius: '8px',
+                            background: 'rgba(255,255,255,0.05)',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            color: '#6B6B70',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {editForm.hasSalesRep && (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '10px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                          Select Sales Rep
+                        </label>
+                        <select
+                          style={{
+                            width: '100%',
+                            padding: '11px 14px',
+                            background: 'rgba(255,255,255,0.04)',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            borderRadius: '10px',
+                            color: '#E8E4E0',
+                            fontSize: '13px',
+                            fontFamily: '"Inter", sans-serif',
+                            outline: 'none',
+                            cursor: 'pointer',
+                            boxSizing: 'border-box',
+                          }}
+                          value={editForm.salesRepId}
+                          onChange={(e) => setEditForm({ ...editForm, salesRepId: e.target.value })}
+                        >
+                          <option value="" style={{ background: '#121214' }}>Select sales rep...</option>
+                          {salesRepList.map((s) => (
+                            <option key={s.id} value={s.id} style={{ background: '#121214' }}>{s.name}</option>
+                          ))}
+                        </select>
+                        {salesRepErrorInEdit && (
+                          <span style={{ fontSize: '11px', color: '#EF4444', marginTop: '4px', display: 'block' }}>
+                            {salesRepErrorInEdit}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                          Commission (% of Profit)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.5"
+                          min="0"
+                          max="100"
+                          style={{
+                            width: '100%',
+                            padding: '11px 14px',
+                            background: 'rgba(255,255,255,0.04)',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            borderRadius: '10px',
+                            color: '#E8E4E0',
+                            fontSize: '13px',
+                            fontFamily: '"Inter", sans-serif',
+                            outline: 'none',
+                            boxSizing: 'border-box',
+                          }}
+                          value={editForm.salesCommissionPercent}
+                          onChange={(e) => setEditForm({ ...editForm, salesCommissionPercent: e.target.value })}
+                          placeholder="e.g. 10"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {/* Description */}
                 <div>

@@ -80,6 +80,12 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
   const [showNewClient, setShowNewClient] = useState(false);
   const [newClientName, setNewClientName] = useState('');
 
+  const [salesRepList, setSalesRepList] = useState<{ id: string; name: string }[]>(salesReps);
+  const [showNewSalesRep, setShowNewSalesRep] = useState(false);
+  const [newSalesRepName, setNewSalesRepName] = useState('');
+  const [isCreatingSalesRep, setIsCreatingSalesRep] = useState(false);
+  const [salesRepError, setSalesRepError] = useState('');
+
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -147,6 +153,39 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
         router.refresh();
       }
     } catch { /* ignore */ }
+  }
+
+  async function createNewSalesRep() {
+    if (!newSalesRepName.trim()) return;
+    setIsCreatingSalesRep(true);
+    setSalesRepError('');
+    try {
+      const res = await fetch('/api/dashboard/sales-reps', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newSalesRepName.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSalesRepError(data.error || 'Failed to add sales rep');
+        return;
+      }
+      if (data.salesRep) {
+        setSalesRepList((prev) => [...prev, data.salesRep]);
+        setForm((prev) => ({
+          ...prev,
+          hasSalesRep: true,
+          salesRepId: data.salesRep.id,
+        }));
+        setShowNewSalesRep(false);
+        setNewSalesRepName('');
+        router.refresh();
+      }
+    } catch {
+      setSalesRepError('Network error. Please try again.');
+    } finally {
+      setIsCreatingSalesRep(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -388,9 +427,81 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
           </div>
 
           {/* Sales Rep */}
-          <h2 style={{ fontSize: '14px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', marginBottom: '20px', color: accentColor }}>
-            Sales Representative
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+            <h2 style={{ fontSize: '14px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', color: accentColor, margin: 0 }}>
+              Sales Representative
+            </h2>
+            {!showNewSalesRep ? (
+              <button
+                type="button"
+                onClick={() => {
+                  update('hasSalesRep', true);
+                  setShowNewSalesRep(true);
+                }}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  background: 'rgba(255,255,255,0.03)',
+                  color: '#E8E4E0',
+                  fontSize: '12px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <Plus size={14} /> New Sales Rep
+              </button>
+            ) : (
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <input
+                  style={{ ...inputStyle, width: '180px', padding: '6px 12px', fontSize: '12px' }}
+                  placeholder="Sales rep name"
+                  value={newSalesRepName}
+                  onChange={(e) => setNewSalesRepName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), createNewSalesRep())}
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={createNewSalesRep}
+                  disabled={isCreatingSalesRep}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    background: accentColor,
+                    border: 'none',
+                    color: accentColor === '#B6FF33' ? '#121f00' : '#fff',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    fontSize: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <Plus size={14} /> {isCreatingSalesRep ? 'Adding...' : 'Add'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowNewSalesRep(false)}
+                  style={{
+                    padding: '6px 10px',
+                    borderRadius: '8px',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    color: '#6B6B70',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
+          </div>
 
           <div style={{ marginBottom: '28px' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', marginBottom: '16px' }}>
@@ -430,17 +541,44 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
                 style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}
               >
                 <div>
-                  <label style={labelStyle}>Sales Rep</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label style={{ ...labelStyle, marginBottom: 0 }}>Sales Rep</label>
+                    {!showNewSalesRep && (
+                      <button
+                        type="button"
+                        onClick={() => setShowNewSalesRep(true)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: accentColor,
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: 0,
+                        }}
+                      >
+                        <Plus size={12} /> Add New
+                      </button>
+                    )}
+                  </div>
                   <select
                     style={{ ...inputStyle, cursor: 'pointer' }}
                     value={form.salesRepId}
                     onChange={(e) => update('salesRepId', e.target.value)}
                   >
-                    <option value="" style={{ background: '#121214' }}>Select...</option>
-                    {salesReps.map((s) => (
+                    <option value="" style={{ background: '#121214' }}>Select sales representative...</option>
+                    {salesRepList.map((s) => (
                       <option key={s.id} value={s.id} style={{ background: '#121214' }}>{s.name}</option>
                     ))}
                   </select>
+                  {salesRepError && (
+                    <span style={{ fontSize: '11px', color: '#EF4444', marginTop: '4px', display: 'block' }}>
+                      {salesRepError}
+                    </span>
+                  )}
                 </div>
                 <div>
                   <label style={labelStyle}>Commission (% of Profit)</label>
