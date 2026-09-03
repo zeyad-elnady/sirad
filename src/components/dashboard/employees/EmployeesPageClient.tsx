@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { UserRole } from '@prisma/client';
 import { Plus, Search, UserCheck, X, Briefcase, Clock } from 'lucide-react';
+import FormattedNumberInput from '@/components/ui/FormattedNumberInput';
 
 interface EmployeeItem {
   id: string;
@@ -115,8 +116,8 @@ export default function EmployeesPageClient({ role, employees }: Props) {
                   <input type="checkbox" checked={form.isFreelancer} onChange={(e) => setForm({ ...form, isFreelancer: e.target.checked })} />
                   Freelancer
                 </label>
-                <input style={inputStyle} type="number" step="0.01" placeholder="Monthly Rate (EGP)" value={form.monthlyRate} onChange={(e) => setForm({ ...form, monthlyRate: e.target.value })} />
-                <input style={inputStyle} type="number" step="0.01" placeholder="Hourly Rate (EGP)" value={form.hourlyRate} onChange={(e) => setForm({ ...form, hourlyRate: e.target.value })} />
+                <FormattedNumberInput style={inputStyle} placeholder="Monthly Rate (EGP)" value={form.monthlyRate} onChangeValue={(val) => setForm({ ...form, monthlyRate: val })} />
+                <FormattedNumberInput style={inputStyle} placeholder="Hourly Rate (EGP)" value={form.hourlyRate} onChangeValue={(val) => setForm({ ...form, hourlyRate: val })} />
                 <input style={{ ...inputStyle, gridColumn: '1 / -1' }} placeholder="Bank Details" value={form.bankDetails} onChange={(e) => setForm({ ...form, bankDetails: e.target.value })} />
                 <textarea style={{ ...inputStyle, gridColumn: '1 / -1', minHeight: '60px', resize: 'vertical' }} placeholder="Notes" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
                 <button type="submit" disabled={isSubmitting} style={{ gridColumn: '1 / -1', padding: '12px', borderRadius: '10px', border: 'none', background: accentColor, color: accentColor === '#B6FF33' ? '#121f00' : '#fff', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>

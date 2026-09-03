@@ -27,14 +27,22 @@ export const salesRepSchema = z.object({
 
 // ─── Employee ───
 
+const numericCoerce = z.preprocess((val) => {
+  if (typeof val === 'string') {
+    const clean = val.replace(/,/g, '').trim();
+    return clean === '' ? 0 : parseFloat(clean);
+  }
+  return val;
+}, z.number());
+
 export const employeeSchema = z.object({
   name: z.string().min(1, 'Employee name is required'),
   email: z.string().email('Invalid email').optional().or(z.literal('')),
   phone: z.string().optional(),
   role: z.string().min(1, 'Role is required'),
   department: z.enum(['TECH', 'MARKETING']),
-  hourlyRate: z.number().min(0).optional().nullable(),
-  monthlyRate: z.number().min(0).optional().nullable(),
+  hourlyRate: numericCoerce.optional().nullable(),
+  monthlyRate: numericCoerce.optional().nullable(),
   paymentModel: z.enum(['MONTHLY', 'PER_TASK']).default('PER_TASK'),
   isFreelancer: z.boolean().default(false),
   bankDetails: z.string().optional(),
@@ -50,11 +58,11 @@ export const projectSchema = z.object({
   status: z.enum(['DRAFT', 'ACTIVE', 'ON_HOLD', 'COMPLETED', 'CANCELLED']).default('DRAFT'),
   techProjectType: z.enum(['LANDING_PAGE', 'SYSTEM', 'ECOMMERCE', 'WEBSITE_WITH_DASHBOARD']).optional().nullable(),
   marketingProjectType: z.enum(['PRODUCTION', 'VISUAL_IDENTITY', 'SOCIAL_MEDIA_SPECIALIST', 'PERFORMANCE_MARKETING']).optional().nullable(),
-  totalAmount: z.number().min(0, 'Amount must be positive').default(0),
-  depositPaid: z.number().min(0).default(0),
+  totalAmount: numericCoerce.default(0),
+  depositPaid: numericCoerce.default(0),
   hasSalesRep: z.boolean().default(false),
   salesRepId: z.string().optional().nullable(),
-  salesCommissionPercent: z.number().min(0).max(100).optional().nullable(),
+  salesCommissionPercent: numericCoerce.optional().nullable(),
   clientId: z.string().min(1, 'Client is required'),
   startDate: z.string().optional().nullable(),
   deadline: z.string().optional().nullable(),
@@ -65,8 +73,8 @@ export const projectSchema = z.object({
 export const contractSchema = z.object({
   projectId: z.string().min(1, 'Project is required'),
   agreementTerms: z.string().min(1, 'Agreement terms are required'),
-  totalAmount: z.number().min(0),
-  depositPaid: z.number().min(0).default(0),
+  totalAmount: numericCoerce,
+  depositPaid: numericCoerce.default(0),
   contractImages: z.array(z.string()).default([]),
   signedAt: z.string().datetime().optional().nullable(),
 });
@@ -75,7 +83,7 @@ export const contractSchema = z.object({
 
 export const installmentSchema = z.object({
   contractId: z.string().min(1),
-  amount: z.number().min(0, 'Amount must be positive'),
+  amount: numericCoerce,
   dueDate: z.string().datetime(),
   notes: z.string().optional(),
 });
@@ -83,7 +91,7 @@ export const installmentSchema = z.object({
 export const installmentUpdateSchema = z.object({
   status: z.enum(['PENDING', 'PAID', 'OVERDUE']).optional(),
   paidDate: z.string().datetime().optional().nullable(),
-  amount: z.number().min(0).optional(),
+  amount: numericCoerce.optional(),
   dueDate: z.string().datetime().optional(),
   notes: z.string().optional(),
 });
@@ -94,7 +102,7 @@ export const projectEmployeeSchema = z.object({
   projectId: z.string().min(1),
   employeeId: z.string().min(1),
   assignedRole: z.string().min(1, 'Role assignment is required'),
-  payAmount: z.number().min(0, 'Pay amount must be positive'),
+  payAmount: numericCoerce,
   startDate: z.string().datetime().optional().nullable(),
   endDate: z.string().datetime().optional().nullable(),
   notes: z.string().optional(),
@@ -105,7 +113,7 @@ export const projectEmployeeSchema = z.object({
 export const transactionSchema = z.object({
   employeeId: z.string().min(1),
   type: z.enum(['SALARY', 'PARTIAL_PAYMENT', 'DEPOSIT', 'LOAN', 'ADVANCE', 'TASK_PAYMENT', 'BONUS', 'DEDUCTION']),
-  amount: z.coerce.number().min(0, 'Amount must be positive'),
+  amount: numericCoerce,
   date: z.string().optional().nullable(),
   projectId: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
@@ -117,7 +125,7 @@ export const recurringExpenseSchema = z.object({
   projectId: z.string().min(1),
   category: z.enum(['HOSTING', 'DOMAIN', 'API_USAGE', 'OTHER']),
   description: z.string().min(1, 'Description is required'),
-  amount: z.number().min(0),
+  amount: numericCoerce,
   frequency: z.enum(['MONTHLY', 'ANNUAL']),
   startDate: z.string().datetime(),
   endDate: z.string().datetime().optional().nullable(),
@@ -128,7 +136,7 @@ export const recurringExpenseSchema = z.object({
 export const productionDetailSchema = z.object({
   projectId: z.string().min(1),
   equipmentType: z.string().min(1, 'Equipment type is required'),
-  rentalCost: z.number().min(0),
+  rentalCost: numericCoerce,
   notes: z.string().optional(),
 });
 

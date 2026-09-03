@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { UserRole } from '@prisma/client';
 import { Plus, Server, Globe, Cpu, MoreHorizontal, X } from 'lucide-react';
 import { format } from 'date-fns';
+import FormattedNumberInput from '@/components/ui/FormattedNumberInput';
 
 interface ExpenseItem {
   id: string;
@@ -294,13 +295,11 @@ export default function RecurringExpensesClient({ role, expenses, projects }: Pr
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '11px', color: '#6B6B70', textTransform: 'uppercase', marginBottom: '6px' }}>Amount (EGP)</label>
-                    <input
+                    <FormattedNumberInput
                       style={inputStyle}
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
+                      placeholder="0"
                       value={form.amount}
-                      onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                      onChangeValue={(val) => setForm({ ...form, amount: val })}
                       required
                     />
                   </div>

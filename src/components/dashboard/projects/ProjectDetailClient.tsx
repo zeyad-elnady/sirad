@@ -23,6 +23,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import FormattedNumberInput from '@/components/ui/FormattedNumberInput';
 
 const techTypes = [
   { value: 'LANDING_PAGE', label: 'Landing Page' },
@@ -1139,10 +1140,7 @@ export default function ProjectDetailClient({
                   <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
                     Project Salary / Pay Amount (EGP)
                   </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="100"
+                  <FormattedNumberInput
                     style={{
                       width: '100%',
                       padding: '10px 14px',
@@ -1157,7 +1155,7 @@ export default function ProjectDetailClient({
                     }}
                     placeholder="e.g. 5000"
                     value={assignForm.payAmount}
-                    onChange={(e) => setAssignForm({ ...assignForm, payAmount: e.target.value })}
+                    onChangeValue={(val) => setAssignForm({ ...assignForm, payAmount: val })}
                   />
                   <span style={{ fontSize: '11px', color: '#EF4444', marginTop: '4px', display: 'block' }}>
                     * This salary is automatically subtracted from project revenue to calculate Net Profit.
@@ -1512,10 +1510,7 @@ export default function ProjectDetailClient({
                     <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
                       Total Amount (EGP)
                     </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="100"
+                    <FormattedNumberInput
                       style={{
                         width: '100%',
                         padding: '11px 14px',
@@ -1528,8 +1523,9 @@ export default function ProjectDetailClient({
                         outline: 'none',
                         boxSizing: 'border-box',
                       }}
+                      placeholder="0"
                       value={editForm.totalAmount}
-                      onChange={(e) => setEditForm({ ...editForm, totalAmount: e.target.value })}
+                      onChangeValue={(val) => setEditForm({ ...editForm, totalAmount: val })}
                     />
                   </div>
 
@@ -1537,10 +1533,7 @@ export default function ProjectDetailClient({
                     <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
                       Deposit Paid (EGP)
                     </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="100"
+                    <FormattedNumberInput
                       style={{
                         width: '100%',
                         padding: '11px 14px',
@@ -1553,8 +1546,9 @@ export default function ProjectDetailClient({
                         outline: 'none',
                         boxSizing: 'border-box',
                       }}
+                      placeholder="0"
                       value={editForm.depositPaid}
-                      onChange={(e) => setEditForm({ ...editForm, depositPaid: e.target.value })}
+                      onChangeValue={(val) => setEditForm({ ...editForm, depositPaid: val })}
                     />
                   </div>
                 </div>
@@ -1816,14 +1810,12 @@ export default function ProjectDetailClient({
                         </div>
                         <div style={{ marginBottom: '10px' }}>
                           <label style={{ display: 'block', fontSize: '10px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', marginBottom: '4px' }}>Amount (EGP) *</label>
-                          <input
-                            type="number"
-                            step="0.01"
+                          <FormattedNumberInput
                             required
                             placeholder="Amount in EGP"
-                            style={{ width: '100%', padding: '8px 12px', background: '#18181B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#FFFFFF', fontSize: '12px' }}
+                            style={{ width: '100%', padding: '8px 12px', background: '#18181B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#FFFFFF', fontSize: '12px', boxSizing: 'border-box' }}
                             value={quickPaymentForm.amount}
-                            onChange={(e) => setQuickPaymentForm({ ...quickPaymentForm, amount: e.target.value })}
+                            onChangeValue={(val) => setQuickPaymentForm({ ...quickPaymentForm, amount: val })}
                           />
                         </div>
                         <div style={{ marginBottom: '12px' }}>

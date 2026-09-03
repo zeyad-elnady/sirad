@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import type { UserRole } from '@prisma/client';
 import { ArrowLeft, Save, Plus, X, Users, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import FormattedNumberInput from '@/components/ui/FormattedNumberInput';
 
 const techTypes = [
   { value: 'LANDING_PAGE', label: 'Landing Page' },
@@ -368,24 +369,20 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '28px' }}>
             <div>
               <label style={labelStyle}>Total Amount (EGP)</label>
-              <input
-                type="number"
-                step="0.01"
+              <FormattedNumberInput
                 style={inputStyle}
                 value={form.totalAmount}
-                onChange={(e) => update('totalAmount', e.target.value)}
-                placeholder="0.00"
+                onChangeValue={(val) => update('totalAmount', val)}
+                placeholder="0"
               />
             </div>
             <div>
               <label style={labelStyle}>Deposit Paid (EGP)</label>
-              <input
-                type="number"
-                step="0.01"
+              <FormattedNumberInput
                 style={inputStyle}
                 value={form.depositPaid}
-                onChange={(e) => update('depositPaid', e.target.value)}
-                placeholder="0.00"
+                onChangeValue={(val) => update('depositPaid', val)}
+                placeholder="0"
               />
             </div>
           </div>
@@ -553,14 +550,11 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
 
                     <div>
                       <label style={labelStyle}>Project Pay (EGP)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        step="100"
+                      <FormattedNumberInput
                         style={inputStyle}
-                        placeholder="0.00"
+                        placeholder="0"
                         value={ae.payAmount}
-                        onChange={(e) => updateEmployeeRow(index, 'payAmount', e.target.value)}
+                        onChangeValue={(val) => updateEmployeeRow(index, 'payAmount', val)}
                       />
                     </div>
 

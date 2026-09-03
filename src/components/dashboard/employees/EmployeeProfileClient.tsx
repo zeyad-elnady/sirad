@@ -8,6 +8,7 @@ import type { EmployeeBalance } from '@/lib/finance';
 import { ArrowLeft, Plus, X, Wallet, Briefcase, TrendingUp, TrendingDown, AlertCircle, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import FormattedNumberInput from '@/components/ui/FormattedNumberInput';
 
 interface Props {
   role: UserRole;
@@ -676,25 +677,21 @@ export default function EmployeeProfileClient({ role, employee, balance, project
 
                 <div>
                   <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#6B6B70', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>Monthly Rate (EGP)</label>
-                  <input
+                  <FormattedNumberInput
                     style={inputStyle}
-                    type="number"
-                    step="0.01"
-                    placeholder="Monthly Rate"
+                    placeholder="0"
                     value={editForm.monthlyRate}
-                    onChange={(e) => setEditForm({ ...editForm, monthlyRate: e.target.value })}
+                    onChangeValue={(val) => setEditForm({ ...editForm, monthlyRate: val })}
                   />
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#6B6B70', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>Hourly Rate (EGP)</label>
-                  <input
+                  <FormattedNumberInput
                     style={inputStyle}
-                    type="number"
-                    step="0.01"
-                    placeholder="Hourly Rate"
+                    placeholder="0"
                     value={editForm.hourlyRate}
-                    onChange={(e) => setEditForm({ ...editForm, hourlyRate: e.target.value })}
+                    onChangeValue={(val) => setEditForm({ ...editForm, hourlyRate: val })}
                   />
                 </div>
 
@@ -876,7 +873,13 @@ export default function EmployeeProfileClient({ role, employee, balance, project
                   <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
                     Amount (EGP) *
                   </label>
-                  <input style={inputStyle} type="number" step="0.01" placeholder="Amount (EGP)" value={txForm.amount} onChange={(e) => setTxForm({ ...txForm, amount: e.target.value })} required />
+                  <FormattedNumberInput
+                    style={inputStyle}
+                    placeholder="0"
+                    value={txForm.amount}
+                    onChangeValue={(val) => setTxForm({ ...txForm, amount: val })}
+                    required
+                  />
                 </div>
 
                 <div>

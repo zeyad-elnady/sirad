@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { UserRole } from '@prisma/client';
 import { Clapperboard, Plus, Camera, DollarSign, X } from 'lucide-react';
 import Link from 'next/link';
+import FormattedNumberInput from '@/components/ui/FormattedNumberInput';
 
 interface ProductionItem {
   id: string;
@@ -260,13 +261,11 @@ export default function ProductionClient({ role, projects, allMarketingProjects 
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '11px', color: '#6B6B70', textTransform: 'uppercase', marginBottom: '6px' }}>Rental Cost (EGP)</label>
-                  <input
+                  <FormattedNumberInput
                     style={inputStyle}
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
+                    placeholder="0"
                     value={rentalCost}
-                    onChange={(e) => setRentalCost(e.target.value)}
+                    onChangeValue={(val) => setRentalCost(val)}
                     required
                   />
                 </div>
