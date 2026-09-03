@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import FormattedNumberInput from '@/components/ui/FormattedNumberInput';
+import { useDashboardLang } from '@/context/DashboardLanguageContext';
 
 const techTypes = [
   { value: 'LANDING_PAGE', label: 'Landing Page' },
@@ -68,10 +69,6 @@ interface Props {
   projectTransactions?: ProjectTransaction[];
 }
 
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-EG', { style: 'currency', currency: 'EGP', minimumFractionDigits: 0 }).format(amount);
-}
-
 const statusColors: Record<string, { bg: string; text: string }> = {
   DRAFT: { bg: 'rgba(107,107,112,0.15)', text: '#6B6B70' },
   ACTIVE: { bg: 'rgba(34,197,94,0.15)', text: '#22C55E' },
@@ -107,6 +104,7 @@ export default function ProjectDetailClient({
   projectTransactions = [],
 }: Props) {
   const router = useRouter();
+  const { t, isRtl, formatCurrency } = useDashboardLang();
   const accentColor = role === 'ZEYAD_TECH' ? '#B6FF33' : '#7C3AED';
   const p = project as Record<string, any>;
   const st = statusColors[p.status as string] || statusColors.DRAFT;
@@ -488,7 +486,7 @@ export default function ProjectDetailClient({
               textDecoration: 'none',
             }}
           >
-            <ArrowLeft size={18} />
+            <ArrowLeft size={18} style={{ transform: isRtl ? 'scaleX(-1)' : 'none' }} />
           </Link>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
@@ -580,7 +578,7 @@ export default function ProjectDetailClient({
               transition: 'all 0.2s',
             }}
           >
-            <Pencil size={15} /> Edit Project
+            <Pencil size={15} /> {t('editProject')}
           </button>
         </div>
       </div>
@@ -588,32 +586,32 @@ export default function ProjectDetailClient({
       {/* Financial & Timeline Summary */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '16px' }}>
         {[
-          { label: 'Total Revenue', value: formatCurrency(p.totalAmount), color: '#E8E4E0' },
-          { label: 'Deposit', value: formatCurrency(p.depositPaid), color: '#22C55E' },
-          { label: 'Remaining', value: formatCurrency(p.totalAmount - p.depositPaid), color: '#F59E0B' },
+          { label: t('totalRevenue'), value: formatCurrency(p.totalAmount), color: '#E8E4E0' },
+          { label: t('deposit'), value: formatCurrency(p.depositPaid), color: '#22C55E' },
+          { label: t('remainingBalance'), value: formatCurrency(p.totalAmount - p.depositPaid), color: '#F59E0B' },
           {
-            label: 'Employee Salaries',
+            label: t('salaries'),
             value: totalEmployeesCost > 0 ? `-${formatCurrency(totalEmployeesCost)}` : formatCurrency(0),
             color: totalEmployeesCost > 0 ? '#EF4444' : '#6B6B70',
             sublabel: totalSalariesPaid > 0
-              ? `Paid: ${formatCurrency(totalSalariesPaid)} • Remaining: ${formatCurrency(totalSalariesRemaining)}`
-              : `${((p.employees as any[]) || []).length} team member${((p.employees as any[]) || []).length !== 1 ? 's' : ''}`,
+              ? `${isRtl ? 'المدفوع' : 'Paid'}: ${formatCurrency(totalSalariesPaid)} • ${isRtl ? 'المتبقي' : 'Remaining'}: ${formatCurrency(totalSalariesRemaining)}`
+              : `${((p.employees as any[]) || []).length} ${isRtl ? 'أعضاء في الفريق' : 'team members'}`,
           },
           {
-            label: 'Net Profit',
+            label: t('netProfit'),
             value: formatCurrency(computedNetProfit),
             color: computedNetProfit >= 0 ? '#22C55E' : '#DC2626',
-            sublabel: `${profitMargin}% margin (Revenue − Salaries)`,
+            sublabel: `${profitMargin}% ${isRtl ? 'هامش ربح' : 'margin'} (${isRtl ? 'الإيرادات − الرواتب' : 'Revenue − Salaries'})`,
           },
           {
-            label: 'Start Date',
-            value: p.startDate ? format(new Date(p.startDate), 'MMM d, yyyy') : 'Not set',
+            label: t('startDate'),
+            value: p.startDate ? format(new Date(p.startDate), 'MMM d, yyyy') : (isRtl ? 'غير محدد' : 'Not set'),
             color: p.startDate ? '#E8E4E0' : '#6B6B70',
             isDate: true,
           },
           {
-            label: 'Project Deadline',
-            value: p.deadline ? format(new Date(p.deadline), 'MMM d, yyyy') : 'No deadline',
+            label: t('deadline'),
+            value: p.deadline ? format(new Date(p.deadline), 'MMM d, yyyy') : (isRtl ? 'بدون موعد تسليم' : 'No deadline'),
             color: p.deadline
               ? new Date(p.deadline) < new Date() && p.status !== 'COMPLETED'
                 ? '#EF4444'
@@ -623,10 +621,10 @@ export default function ProjectDetailClient({
           },
           ...(p.hasSalesRep ? [
             {
-              label: 'Sales Commission',
+              label: isRtl ? 'عمولة المبيعات' : 'Sales Commission',
               value: formatCurrency(salesCommission),
               color: '#7C3AED',
-              sublabel: `${p.salesCommissionPercent || 0}% after costs`,
+              sublabel: `${p.salesCommissionPercent || 0}% ${isRtl ? 'بعد التكاليف' : 'after costs'}`,
             },
           ] : []),
         ].map((card) => (
@@ -828,7 +826,7 @@ export default function ProjectDetailClient({
               transition: 'all 0.2s',
             }}
           >
-            <Plus size={14} /> Assign Member
+            <Plus size={14} /> {t('assignTeamMember')}
           </button>
         </div>
 
@@ -968,7 +966,7 @@ export default function ProjectDetailClient({
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '11px', color: '#8E8E93' }}>Agreed Salary</span>
+                        <span style={{ fontSize: '11px', color: '#8E8E93' }}>{t('agreedSalary')}</span>
                         <span style={{ fontSize: '12px', fontWeight: 600, color: '#FFFFFF', fontFamily: '"Space Grotesk", sans-serif' }}>
                           {formatCurrency(pe.payAmount)}
                         </span>
@@ -976,10 +974,10 @@ export default function ProjectDetailClient({
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
-                          <span style={{ fontSize: '11px', color: '#22C55E' }}>Paid to Date</span>
+                          <span style={{ fontSize: '11px', color: '#22C55E' }}>{t('paidToDate')}</span>
                           {empStats.loans > 0 && (
                             <span style={{ fontSize: '10px', color: '#F59E0B', display: 'block' }}>
-                              incl. {formatCurrency(empStats.loans)} loan
+                              ({isRtl ? 'شامل' : 'incl.'} {formatCurrency(empStats.loans)} {isRtl ? 'سلفة' : 'loan'})
                             </span>
                           )}
                         </div>
@@ -990,10 +988,10 @@ export default function ProjectDetailClient({
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{ fontSize: '11px', color: empStats.remaining > 0 ? '#F59E0B' : '#22C55E', fontWeight: 600 }}>
-                          Remaining Owed
+                          {t('remainingOwed')}
                         </span>
                         <span style={{ fontSize: '13px', fontWeight: 700, color: empStats.remaining > 0 ? '#F59E0B' : '#22C55E', fontFamily: '"Space Grotesk", sans-serif' }}>
-                          {empStats.remaining > 0 ? formatCurrency(empStats.remaining) : 'Fully Paid ✓'}
+                          {empStats.remaining > 0 ? formatCurrency(empStats.remaining) : (isRtl ? 'مدفوع بالكامل ✓' : 'Fully Paid ✓')}
                         </span>
                       </div>
 
@@ -1010,9 +1008,9 @@ export default function ProjectDetailClient({
                         />
                       </div>
 
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
                         <span style={{ fontSize: '10px', color: accentColor, fontWeight: 600 }}>
-                          🔍 Tap for dates breakdown
+                          🔍 {t('tapForBreakdown')}
                         </span>
                         <span style={{ fontSize: '10px', color: '#8E8E93' }}>{percent}%</span>
                       </div>
@@ -1943,24 +1941,24 @@ export default function ProjectDetailClient({
                     {/* Top 3 summary chips */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '20px' }}>
                       <div style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
-                        <div style={{ fontSize: '10px', color: '#8E8E93', textTransform: 'uppercase' }}>Agreed Salary</div>
+                        <div style={{ fontSize: '10px', color: '#8E8E93', textTransform: 'uppercase' }}>{t('agreedSalary')}</div>
                         <div style={{ fontSize: '15px', fontWeight: 700, color: '#FFFFFF', fontFamily: '"Space Grotesk", sans-serif', marginTop: '4px' }}>
                           {formatCurrency(empStats.payAmount)}
                         </div>
                       </div>
                       <div style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
-                        <div style={{ fontSize: '10px', color: '#22C55E', textTransform: 'uppercase' }}>Paid to Date</div>
+                        <div style={{ fontSize: '10px', color: '#22C55E', textTransform: 'uppercase' }}>{t('paidToDate')}</div>
                         <div style={{ fontSize: '15px', fontWeight: 700, color: '#22C55E', fontFamily: '"Space Grotesk", sans-serif', marginTop: '4px' }}>
                           {formatCurrency(empStats.paid)}
                         </div>
                         {empStats.loans > 0 && (
                           <div style={{ fontSize: '10px', color: '#F59E0B', marginTop: '2px' }}>
-                            (incl. {formatCurrency(empStats.loans)} loan)
+                            ({isRtl ? 'شامل' : 'incl.'} {formatCurrency(empStats.loans)} {isRtl ? 'سلفة' : 'loan'})
                           </div>
                         )}
                       </div>
                       <div style={{ padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
-                        <div style={{ fontSize: '10px', color: empStats.remaining > 0 ? '#F59E0B' : '#22C55E', textTransform: 'uppercase' }}>Remaining Owed</div>
+                        <div style={{ fontSize: '10px', color: empStats.remaining > 0 ? '#F59E0B' : '#22C55E', textTransform: 'uppercase' }}>{t('remainingOwed')}</div>
                         <div style={{ fontSize: '15px', fontWeight: 700, color: empStats.remaining > 0 ? '#F59E0B' : '#22C55E', fontFamily: '"Space Grotesk", sans-serif', marginTop: '4px' }}>
                           {empStats.remaining > 0 ? formatCurrency(empStats.remaining) : '0 ✓'}
                         </div>
@@ -1969,7 +1967,7 @@ export default function ProjectDetailClient({
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                       <h4 style={{ fontSize: '12px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
-                        Transactions by Date ({empTxs.length})
+                        {isRtl ? `سجل المعاملات والتواريخ (${empTxs.length})` : `Transactions by Date (${empTxs.length})`}
                       </h4>
                       <button
                         type="button"
@@ -1985,7 +1983,7 @@ export default function ProjectDetailClient({
                           cursor: 'pointer',
                         }}
                       >
-                        {showQuickPayment ? 'Hide Form' : '+ Record Payment'}
+                        {showQuickPayment ? (isRtl ? 'إخفاء النموذج' : 'Hide Form') : `+ ${t('recordPayment')}`}
                       </button>
                     </div>
 

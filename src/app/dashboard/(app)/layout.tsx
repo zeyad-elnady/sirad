@@ -1,8 +1,10 @@
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 import { getSession } from '@/lib/auth';
 import DashboardShell from '@/components/dashboard/layout/DashboardShell';
+import { DashboardLanguageProvider } from '@/context/DashboardLanguageContext';
 import '@/app/globals.css';
-import { Inter, Space_Grotesk } from 'next/font/google';
+import { Inter, Space_Grotesk, Cairo } from 'next/font/google';
 
 const spaceGrotesk = Space_Grotesk({
   variable: '--font-space-grotesk',
@@ -12,6 +14,13 @@ const spaceGrotesk = Space_Grotesk({
 const inter = Inter({
   variable: '--font-inter',
   subsets: ['latin'],
+});
+
+const cairo = Cairo({
+  variable: '--font-cairo',
+  subsets: ['arabic', 'latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  display: 'swap',
 });
 
 export const metadata = {
@@ -30,11 +39,15 @@ export default async function AuthenticatedDashboardLayout({
     redirect('/dashboard/login');
   }
 
+  const cookieStore = await cookies();
+  const initialLocale = (cookieStore.get('dashboard_lang')?.value === 'ar') ? 'ar' : 'en';
+  const initialDir = initialLocale === 'ar' ? 'rtl' : 'ltr';
+
   return (
     <html
-      lang="en"
-      dir="ltr"
-      className={`${spaceGrotesk.variable} ${inter.variable} dark no-scrollbar selection:bg-[#B6FF33] selection:text-[#121f00]`}
+      lang={initialLocale}
+      dir={initialDir}
+      className={`${spaceGrotesk.variable} ${inter.variable} ${cairo.variable} dark no-scrollbar selection:bg-[#B6FF33] selection:text-[#121f00]`}
     >
       <head>
         <link
@@ -46,9 +59,11 @@ export default async function AuthenticatedDashboardLayout({
         className="font-body text-[#e5e2e1] bg-[#131313] min-h-screen antialiased overflow-x-hidden"
         suppressHydrationWarning
       >
-        <DashboardShell role={session.role} userName={session.name}>
-          {children}
-        </DashboardShell>
+        <DashboardLanguageProvider>
+          <DashboardShell role={session.role} userName={session.name}>
+            {children}
+          </DashboardShell>
+        </DashboardLanguageProvider>
       </body>
     </html>
   );

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { UserRole } from '@prisma/client';
 import { Plus, Search, UserCheck, X, Briefcase, Clock } from 'lucide-react';
 import FormattedNumberInput from '@/components/ui/FormattedNumberInput';
+import { useDashboardLang } from '@/context/DashboardLanguageContext';
 
 interface EmployeeItem {
   id: string;
@@ -29,6 +30,7 @@ interface Props {
 
 export default function EmployeesPageClient({ role, employees }: Props) {
   const router = useRouter();
+  const { t, isRtl } = useDashboardLang();
   const accentColor = role === 'ZEYAD_TECH' ? '#B6FF33' : '#7C3AED';
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -73,15 +75,15 @@ export default function EmployeesPageClient({ role, employees }: Props) {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif' }}>Employees</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif' }}>{t('employees')}</h1>
         <button onClick={() => setShowForm(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 18px', borderRadius: '10px', background: accentColor === '#B6FF33' ? 'linear-gradient(135deg, #B6FF33, #96da00)' : `linear-gradient(135deg, ${accentColor}, ${accentColor}90)`, color: accentColor === '#B6FF33' ? '#121f00' : '#fff', border: 'none', fontSize: '13px', fontWeight: 700, cursor: 'pointer', boxShadow: accentColor === '#B6FF33' ? '0 0 25px rgba(182,255,51,0.25)' : `0 0 20px ${accentColor}20` }}>
-          <Plus size={16} /> Register Employee
+          <Plus size={16} /> {isRtl ? 'إضافة موظف جديد' : 'Register Employee'}
         </button>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '10px', padding: '8px 14px', marginBottom: '20px', maxWidth: '320px' }}>
         <Search size={16} style={{ color: '#6B6B70' }} />
-        <input type="text" placeholder="Search employees..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ background: 'none', border: 'none', outline: 'none', color: '#E8E4E0', fontSize: '13px', width: '100%', fontFamily: '"Inter", sans-serif' }} />
+        <input type="text" placeholder={isRtl ? 'البحث عن موظف...' : 'Search employees...'} value={search} onChange={(e) => setSearch(e.target.value)} style={{ background: 'none', border: 'none', outline: 'none', color: '#E8E4E0', fontSize: '13px', width: '100%', fontFamily: '"Inter", sans-serif' }} />
       </div>
 
       {/* New Employee Modal */}
@@ -143,21 +145,21 @@ export default function EmployeesPageClient({ role, employees }: Props) {
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '14px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
                   {emp.name}
-                  {emp.isFreelancer && <span style={{ fontSize: '9px', padding: '2px 6px', borderRadius: '4px', background: 'rgba(124,58,237,0.15)', color: '#7C3AED', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Freelancer</span>}
+                  {emp.isFreelancer && <span style={{ fontSize: '9px', padding: '2px 6px', borderRadius: '4px', background: 'rgba(124,58,237,0.15)', color: '#7C3AED', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{isRtl ? 'مستقل' : 'Freelancer'}</span>}
                 </div>
                 <div style={{ fontSize: '12px', color: '#6B6B70', marginTop: '2px' }}>{emp.role}</div>
               </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#6B6B70' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Briefcase size={12} /> {emp.projectCount} projects</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={12} /> {emp.paymentModel === 'MONTHLY' ? 'Monthly' : 'Per Task'}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Briefcase size={12} /> {emp.projectCount} {isRtl ? 'مشاريع' : 'projects'}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={12} /> {emp.paymentModel === 'MONTHLY' ? (isRtl ? 'شهري' : 'Monthly') : (isRtl ? 'لكل مهمة' : 'Per Task')}</span>
             </div>
           </motion.div>
         ))}
         {filtered.length === 0 && (
           <div style={{ gridColumn: '1 / -1', padding: '48px', textAlign: 'center', color: '#6B6B70' }}>
             <UserCheck size={36} style={{ marginBottom: '12px', opacity: 0.3 }} />
-            <p>No employees found</p>
+            <p>{isRtl ? 'لا يوجد موظفون' : 'No employees found'}</p>
           </div>
         )}
       </div>

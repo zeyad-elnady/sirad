@@ -1,9 +1,10 @@
 'use client';
 
 import type { UserRole } from '@prisma/client';
-import { Search, Bell, ExternalLink, Sparkles } from 'lucide-react';
+import { Search, Bell, ExternalLink, Globe } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
+import { useDashboardLang } from '@/context/DashboardLanguageContext';
 
 interface TopbarProps {
   role: UserRole;
@@ -12,6 +13,7 @@ interface TopbarProps {
 
 export default function DashboardTopbar({ role, userName }: TopbarProps) {
   const [searchFocused, setSearchFocused] = useState(false);
+  const { locale, toggleLocale, t } = useDashboardLang();
   const isTech = role === 'ZEYAD_TECH';
 
   return (
@@ -33,7 +35,7 @@ export default function DashboardTopbar({ role, userName }: TopbarProps) {
         <input
           id="dashboard-search"
           type="text"
-          placeholder="Search projects, clients, finances..."
+          placeholder={t('searchPlaceholder')}
           onFocus={() => setSearchFocused(true)}
           onBlur={() => setSearchFocused(false)}
           className="bg-transparent border-none outline-none text-[#e5e2e1] text-xs font-body placeholder-[#e5e2e1]/30 w-full"
@@ -45,19 +47,38 @@ export default function DashboardTopbar({ role, userName }: TopbarProps) {
 
       {/* Right Controls */}
       <div className="flex items-center gap-3 md:gap-4">
+        {/* Language Switcher Pill */}
+        <button
+          type="button"
+          onClick={toggleLocale}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] hover:border-white/[0.2] hover:bg-white/[0.06] transition-all cursor-pointer select-none"
+          title={locale === 'en' ? 'التبديل إلى العربية' : 'Switch to English'}
+        >
+          <Globe size={13} className="text-[#B6FF33]" />
+          <div className="flex items-center gap-1 text-[11px] font-headline font-bold">
+            <span className={locale === 'en' ? 'text-[#B6FF33]' : 'text-[#e5e2e1]/40'}>
+              EN
+            </span>
+            <span className="text-[#e5e2e1]/20 text-[10px]">/</span>
+            <span className={locale === 'ar' ? 'text-[#B6FF33]' : 'text-[#e5e2e1]/40'}>
+              عربي
+            </span>
+          </div>
+        </button>
+
         {/* Public Website Shortcut */}
         <Link
           href="/"
           target="_blank"
           className="hidden md:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] text-[#e5e2e1]/70 hover:text-[#B6FF33] hover:border-[#B6FF33]/30 hover:bg-[#B6FF33]/5 text-xs font-headline font-semibold transition-all duration-200"
         >
-          <span>Agency Site</span>
+          <span>{t('agencySite')}</span>
           <ExternalLink size={12} />
         </Link>
 
         {/* Notifications */}
         <button
-          aria-label="Notifications"
+          aria-label={t('notifications')}
           className="relative p-2.5 rounded-full border border-white/[0.08] bg-white/[0.03] text-[#e5e2e1]/60 hover:text-[#B6FF33] hover:border-[#B6FF33]/30 hover:bg-[#B6FF33]/5 transition-all duration-200 cursor-pointer"
         >
           <Bell size={17} />
@@ -74,7 +95,7 @@ export default function DashboardTopbar({ role, userName }: TopbarProps) {
               {userName}
             </div>
             <div className="text-[9px] font-headline text-[#B6FF33] uppercase tracking-wider font-semibold mt-0.5">
-              {isTech ? 'Tech Lead' : 'Marketing Lead'}
+              {isTech ? t('techLead') : t('marketingLead')}
             </div>
           </div>
         </div>

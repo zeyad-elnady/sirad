@@ -7,6 +7,7 @@ import type { UserRole } from '@prisma/client';
 import { ArrowLeft, Save, Plus, X, Users, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import FormattedNumberInput from '@/components/ui/FormattedNumberInput';
+import { useDashboardLang } from '@/context/DashboardLanguageContext';
 
 const techTypes = [
   { value: 'LANDING_PAGE', label: 'Landing Page' },
@@ -72,6 +73,7 @@ const labelStyle: React.CSSProperties = {
 
 export default function NewProjectForm({ role, department, clients, salesReps, employees = [] }: Props) {
   const router = useRouter();
+  const { t, isRtl } = useDashboardLang();
   const accentColor = role === 'ZEYAD_TECH' ? '#B6FF33' : '#7C3AED';
   const projectTypes = department === 'TECH' ? techTypes : marketingTypes;
 
@@ -254,14 +256,14 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
             textDecoration: 'none',
           }}
         >
-          <ArrowLeft size={18} />
+          <ArrowLeft size={18} style={{ transform: isRtl ? 'scaleX(-1)' : 'none' }} />
         </Link>
         <div>
           <h1 style={{ fontSize: '22px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', letterSpacing: '-0.02em' }}>
-            New Project
+            {t('newProject')}
           </h1>
           <p style={{ fontSize: '13px', color: '#6B6B70', marginTop: '2px' }}>
-            {department === 'TECH' ? 'Tech' : 'Marketing'} Department
+            {department === 'TECH' ? t('tech') : t('marketing')} - {t('department')}
           </p>
         </div>
       </div>
@@ -278,12 +280,12 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
         >
           {/* Project Details */}
           <h2 style={{ fontSize: '14px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', marginBottom: '20px', color: accentColor }}>
-            Project Details
+            {t('projectDetails')}
           </h2>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '28px' }}>
             <div>
-              <label style={labelStyle}>Project Title *</label>
+              <label style={labelStyle}>{t('projectTitle')} *</label>
               <input
                 style={inputStyle}
                 value={form.title}
@@ -294,21 +296,21 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
             </div>
 
             <div>
-              <label style={labelStyle}>Project Type</label>
+              <label style={labelStyle}>{t('projectType')}</label>
               <select
                 style={{ ...inputStyle, cursor: 'pointer' }}
                 value={form.projectType}
                 onChange={(e) => update('projectType', e.target.value)}
               >
                 <option value="" style={{ background: '#121214' }}>Select type...</option>
-                {projectTypes.map((t) => (
-                  <option key={t.value} value={t.value} style={{ background: '#121214' }}>{t.label}</option>
+                {projectTypes.map((tItem) => (
+                  <option key={tItem.value} value={tItem.value} style={{ background: '#121214' }}>{tItem.label}</option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label style={labelStyle}>Start Date</label>
+              <label style={labelStyle}>{t('startDate')}</label>
               <input
                 type="date"
                 style={{ ...inputStyle, colorScheme: 'dark' }}
@@ -318,7 +320,7 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
             </div>
 
             <div>
-              <label style={labelStyle}>Project Deadline</label>
+              <label style={labelStyle}>{t('deadline')}</label>
               <input
                 type="date"
                 style={{ ...inputStyle, colorScheme: 'dark' }}
@@ -328,7 +330,7 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
             </div>
 
             <div style={{ gridColumn: '1 / -1' }}>
-              <label style={labelStyle}>Description</label>
+              <label style={labelStyle}>{t('description')}</label>
               <textarea
                 style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}
                 value={form.description}
@@ -340,12 +342,12 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
 
           {/* Client Selection */}
           <h2 style={{ fontSize: '14px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', marginBottom: '20px', color: accentColor }}>
-            Client
+            {t('client')}
           </h2>
 
           <div style={{ display: 'flex', gap: '12px', alignItems: 'end', marginBottom: '28px', flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: '280px' }}>
-              <label style={labelStyle}>Select Client *</label>
+              <label style={labelStyle}>{t('selectClient')} *</label>
               <select
                 style={{ ...inputStyle, cursor: 'pointer' }}
                 value={form.clientId}
@@ -379,7 +381,7 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
                   whiteSpace: 'nowrap',
                 }}
               >
-                <Plus size={14} /> New Client
+                <Plus size={14} /> {t('newClient')}
               </button>
             ) : (
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -402,12 +404,12 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
 
           {/* Financial */}
           <h2 style={{ fontSize: '14px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', marginBottom: '20px', color: accentColor }}>
-            Financial
+            {t('finance')}
           </h2>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '28px' }}>
             <div>
-              <label style={labelStyle}>Total Amount (EGP)</label>
+              <label style={labelStyle}>{t('totalAmount')} ({t('egp')})</label>
               <FormattedNumberInput
                 style={inputStyle}
                 value={form.totalAmount}
@@ -416,7 +418,7 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
               />
             </div>
             <div>
-              <label style={labelStyle}>Deposit Paid (EGP)</label>
+              <label style={labelStyle}>{t('depositPaid')} ({t('egp')})</label>
               <FormattedNumberInput
                 style={inputStyle}
                 value={form.depositPaid}
@@ -429,7 +431,7 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
           {/* Sales Rep */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
             <h2 style={{ fontSize: '14px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', color: accentColor, margin: 0 }}>
-              Sales Representative
+              {t('salesRepresentative')}
             </h2>
             {!showNewSalesRep ? (
               <button
@@ -453,7 +455,7 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
                   whiteSpace: 'nowrap',
                 }}
               >
-                <Plus size={14} /> New Sales Rep
+                <Plus size={14} /> {t('newSalesRep')}
               </button>
             ) : (
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -483,7 +485,7 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
                     gap: '4px',
                   }}
                 >
-                  <Plus size={14} /> {isCreatingSalesRep ? 'Adding...' : 'Add'}
+                  <Plus size={14} /> {isCreatingSalesRep ? '...' : t('add')}
                 </button>
                 <button
                   type="button"
@@ -531,7 +533,7 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
                   }}
                 />
               </div>
-              <span style={{ fontSize: '13px', color: '#E8E4E0' }}>This project was closed by a Sales Rep</span>
+              <span style={{ fontSize: '13px', color: '#E8E4E0' }}>{t('closedBySalesRep')}</span>
             </label>
 
             {form.hasSalesRep && (
@@ -542,7 +544,7 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
               >
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <label style={{ ...labelStyle, marginBottom: 0 }}>Sales Rep</label>
+                    <label style={{ ...labelStyle, marginBottom: 0 }}>{t('salesRepName')} *</label>
                     {!showNewSalesRep && (
                       <button
                         type="button"
@@ -560,7 +562,7 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
                           padding: 0,
                         }}
                       >
-                        <Plus size={12} /> Add New
+                        <Plus size={12} /> {t('newSalesRep')}
                       </button>
                     )}
                   </div>
@@ -581,7 +583,7 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
                   )}
                 </div>
                 <div>
-                  <label style={labelStyle}>Commission (% of Profit)</label>
+                  <label style={labelStyle}>{t('commission')}</label>
                   <input
                     type="number"
                     step="0.5"
@@ -603,7 +605,7 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Users size={16} style={{ color: accentColor }} />
                 <h2 style={{ fontSize: '14px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', color: accentColor, margin: 0 }}>
-                  Assigned Team Members ({assignedEmployees.length})
+                  {t('teamMembers')} ({assignedEmployees.length})
                 </h2>
               </div>
               <button
@@ -624,7 +626,7 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
                   transition: 'all 0.2s',
                 }}
               >
-                <Plus size={14} /> Add Team Member
+                <Plus size={14} /> {t('assignTeamMember')}
               </button>
             </div>
 
@@ -640,7 +642,7 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
                   fontSize: '13px',
                 }}
               >
-                No team members assigned yet. You can assign employees now or later from the project page.
+                {isRtl ? 'لا يوجد أعضاء معينين في الفريق بعد. يمكنك تعيين الموظفين الآن أو لاحقاً من صفحة المشروع.' : 'No team members assigned yet. You can assign employees now or later from the project page.'}
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -649,69 +651,69 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
                     key={index}
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr)) auto',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr)) 40px',
                       gap: '12px',
                       alignItems: 'end',
+                      background: 'rgba(255,255,255,0.02)',
                       padding: '14px',
                       borderRadius: '10px',
-                      background: 'rgba(255,255,255,0.02)',
-                      border: '1px solid rgba(255,255,255,0.06)',
+                      border: '1px solid rgba(255,255,255,0.04)',
                     }}
                   >
                     <div>
-                      <label style={labelStyle}>Employee *</label>
+                      <label style={labelStyle}>{t('employeeName')} *</label>
                       <select
                         style={{ ...inputStyle, cursor: 'pointer' }}
                         value={ae.employeeId}
                         onChange={(e) => updateEmployeeRow(index, 'employeeId', e.target.value)}
                         required
                       >
-                        <option value="" style={{ background: '#121214' }}>Choose employee...</option>
-                        {employees.map((emp) => (
-                          <option key={emp.id} value={emp.id} style={{ background: '#121214' }}>
-                            {emp.name} ({emp.role})
+                        <option value="" style={{ background: '#121214' }}>Select employee...</option>
+                        {employees.map((e) => (
+                          <option key={e.id} value={e.id} style={{ background: '#121214' }}>
+                            {e.name} ({e.role})
                           </option>
                         ))}
                       </select>
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Assigned Role *</label>
+                      <label style={labelStyle}>{t('assignedRole')} *</label>
                       <input
                         style={inputStyle}
-                        placeholder="e.g. Lead Developer"
                         value={ae.assignedRole}
                         onChange={(e) => updateEmployeeRow(index, 'assignedRole', e.target.value)}
+                        placeholder="e.g. Lead Designer"
                         required
                       />
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Project Pay (EGP)</label>
+                      <label style={labelStyle}>{t('projectPay')} ({t('egp')}) *</label>
                       <FormattedNumberInput
                         style={inputStyle}
-                        placeholder="0"
                         value={ae.payAmount}
                         onChangeValue={(val) => updateEmployeeRow(index, 'payAmount', val)}
+                        placeholder="0"
+                        required
                       />
                     </div>
 
                     <button
                       type="button"
-                      title="Remove member"
                       onClick={() => removeEmployeeRow(index)}
                       style={{
-                        padding: '11px',
-                        borderRadius: '8px',
-                        border: '1px solid rgba(239,68,68,0.2)',
-                        background: 'rgba(239,68,68,0.06)',
+                        padding: '12px',
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.2)',
+                        borderRadius: '10px',
                         color: '#ef4444',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        marginBottom: '2px',
                       }}
+                      title={t('delete')}
                     >
                       <Trash2 size={16} />
                     </button>
@@ -761,7 +763,7 @@ export default function NewProjectForm({ role, department, clients, salesReps, e
             }}
           >
             <Save size={16} />
-            {isSubmitting ? 'Creating...' : 'Create Project'}
+            {isSubmitting ? t('loading') : t('createNewProject')}
           </button>
         </div>
       </form>

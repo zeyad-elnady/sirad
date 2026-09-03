@@ -6,6 +6,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import type { UserRole } from '@prisma/client';
+import { useDashboardLang } from '@/context/DashboardLanguageContext';
+import type { TranslationKey } from '@/lib/dashboard-translations';
 import {
   LayoutDashboard,
   FolderKanban,
@@ -28,32 +30,32 @@ interface SidebarProps {
 }
 
 interface NavItem {
-  label: string;
+  key: TranslationKey;
   href: string;
   icon: React.ReactNode;
   roles?: UserRole[];
 }
 
 const navItems: NavItem[] = [
-  { label: 'Overview', href: '/dashboard', icon: <LayoutDashboard size={19} /> },
-  { label: 'Projects', href: '/dashboard/projects', icon: <FolderKanban size={19} /> },
-  { label: 'Clients', href: '/dashboard/clients', icon: <Users size={19} /> },
-  { label: 'Employees', href: '/dashboard/employees', icon: <UserCheck size={19} /> },
-  { label: 'Sales Reps', href: '/dashboard/sales-reps', icon: <Handshake size={19} /> },
-  { label: 'Finance', href: '/dashboard/finance', icon: <DollarSign size={19} /> },
+  { key: 'overview', href: '/dashboard', icon: <LayoutDashboard size={19} /> },
+  { key: 'projects', href: '/dashboard/projects', icon: <FolderKanban size={19} /> },
+  { key: 'clients', href: '/dashboard/clients', icon: <Users size={19} /> },
+  { key: 'employees', href: '/dashboard/employees', icon: <UserCheck size={19} /> },
+  { key: 'salesReps', href: '/dashboard/sales-reps', icon: <Handshake size={19} /> },
+  { key: 'finance', href: '/dashboard/finance', icon: <DollarSign size={19} /> },
   {
-    label: 'Recurring Expenses',
+    key: 'recurringExpenses',
     href: '/dashboard/recurring-expenses',
     icon: <Server size={19} />,
     roles: ['ZEYAD_TECH'],
   },
   {
-    label: 'Production',
+    key: 'production',
     href: '/dashboard/production',
     icon: <Clapperboard size={19} />,
     roles: ['YEHIA_MARKETING'],
   },
-  { label: 'Settings', href: '/dashboard/settings', icon: <Settings size={19} /> },
+  { key: 'settings', href: '/dashboard/settings', icon: <Settings size={19} /> },
 ];
 
 export default function DashboardSidebar({
@@ -64,6 +66,7 @@ export default function DashboardSidebar({
 }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { isRtl, t } = useDashboardLang();
   const [internalHovered, setInternalHovered] = useState(false);
   const isHovered = controlledHovered !== undefined ? controlledHovered : internalHovered;
 
@@ -88,7 +91,7 @@ export default function DashboardSidebar({
   }
 
   const isTech = role === 'ZEYAD_TECH';
-  const departmentLabel = isTech ? 'Tech Command' : 'Marketing Hub';
+  const departmentLabel = isTech ? t('techCommand') : t('marketingHub');
 
   return (
     <motion.aside
@@ -96,7 +99,7 @@ export default function DashboardSidebar({
       onMouseLeave={handleMouseLeave}
       animate={{ width: isHovered ? 270 : 76 }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-      className={`dash-sidebar fixed top-0 left-0 h-screen z-50 bg-[#0e0e0e]/95 backdrop-blur-2xl border-r border-white/[0.06] flex flex-col overflow-hidden transition-shadow duration-300 ${
+      className={`dash-sidebar fixed top-0 ${isRtl ? 'right-0 border-l' : 'left-0 border-r'} h-screen z-50 bg-[#0e0e0e]/95 backdrop-blur-2xl border-white/[0.06] flex flex-col overflow-hidden transition-shadow duration-300 ${
         isHovered
           ? 'shadow-[0_0_50px_rgba(0,0,0,0.8),0_0_25px_rgba(182,255,51,0.08)]'
           : ''
@@ -185,7 +188,7 @@ export default function DashboardSidebar({
             <Link
               key={item.href}
               href={item.href}
-              title={!isHovered ? item.label : undefined}
+              title={!isHovered ? t(item.key) : undefined}
               className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 relative group ${
                 isActive
                   ? 'bg-[#B6FF33]/10 text-[#B6FF33] border border-[#B6FF33]/30 shadow-[0_0_20px_rgba(182,255,51,0.12)] font-semibold'
@@ -194,7 +197,11 @@ export default function DashboardSidebar({
             >
               {/* Active neon glowing indicator */}
               {isActive && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-[#B6FF33] shadow-[0_0_10px_#B6FF33]" />
+                <span
+                  className={`absolute ${
+                    isRtl ? 'right-0 rounded-l-full' : 'left-0 rounded-r-full'
+                  } top-1/2 -translate-y-1/2 w-1 h-5 bg-[#B6FF33] shadow-[0_0_10px_#B6FF33]`}
+                />
               )}
 
               <span
@@ -208,13 +215,13 @@ export default function DashboardSidebar({
               <AnimatePresence>
                 {isHovered && (
                   <motion.span
-                    initial={{ opacity: 0, x: -6 }}
+                    initial={{ opacity: 0, x: isRtl ? 6 : -6 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -6 }}
+                    exit={{ opacity: 0, x: isRtl ? 6 : -6 }}
                     transition={{ duration: 0.15 }}
                     className="truncate font-headline text-[13px] tracking-wide"
                   >
-                    {item.label}
+                    {t(item.key)}
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -235,15 +242,15 @@ export default function DashboardSidebar({
             <div className="w-9 h-9 rounded-xl bg-[#1c1b1b] border border-[#B6FF33]/30 flex items-center justify-center text-sm font-bold font-headline text-[#B6FF33] shadow-[0_0_12px_rgba(182,255,51,0.2)]">
               {userName[0]}
             </div>
-            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#B6FF33] border-2 border-[#0A0A0B]" />
+            <span className={`absolute -bottom-0.5 ${isRtl ? '-left-0.5' : '-right-0.5'} w-2.5 h-2.5 rounded-full bg-[#B6FF33] border-2 border-[#0A0A0B]`} />
           </div>
 
           <AnimatePresence>
             {isHovered && (
               <motion.div
-                initial={{ opacity: 0, x: -6 }}
+                initial={{ opacity: 0, x: isRtl ? 6 : -6 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -6 }}
+                exit={{ opacity: 0, x: isRtl ? 6 : -6 }}
                 transition={{ duration: 0.15 }}
                 className="flex-1 min-w-0"
               >
@@ -251,7 +258,7 @@ export default function DashboardSidebar({
                   {userName}
                 </div>
                 <div className="text-[10px] text-[#B6FF33] font-headline uppercase tracking-wider font-semibold">
-                  {isTech ? 'Tech Lead' : 'Marketing Lead'}
+                  {isTech ? t('techLead') : t('marketingLead')}
                 </div>
               </motion.div>
             )}
@@ -263,7 +270,7 @@ export default function DashboardSidebar({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={handleLogout}
-              title="Sign out"
+              title={t('signOut')}
               className="p-1.5 rounded-lg text-[#e5e2e1]/40 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
             >
               <LogOut size={16} />

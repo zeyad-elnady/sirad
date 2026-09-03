@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { UserRole } from '@prisma/client';
 import DashboardSidebar from './DashboardSidebar';
 import DashboardTopbar from './DashboardTopbar';
+import { useDashboardLang } from '@/context/DashboardLanguageContext';
 
 interface ShellProps {
   children: React.ReactNode;
@@ -13,6 +14,7 @@ interface ShellProps {
 
 export default function DashboardShell({ children, role, userName }: ShellProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { isRtl } = useDashboardLang();
 
   return (
     <div className="min-h-screen bg-[#131313] text-[#e5e2e1] relative overflow-x-hidden">
@@ -47,8 +49,11 @@ export default function DashboardShell({ children, role, userName }: ShellProps)
       <div
         className="min-h-screen flex flex-col relative z-10"
         style={{
-          marginLeft: isSidebarOpen ? '270px' : '76px',
-          transition: 'margin-left 0.25s cubic-bezier(0.22, 1, 0.36, 1)',
+          marginLeft: !isRtl ? (isSidebarOpen ? '270px' : '76px') : 0,
+          marginRight: isRtl ? (isSidebarOpen ? '270px' : '76px') : 0,
+          transition: isRtl
+            ? 'margin-right 0.25s cubic-bezier(0.22, 1, 0.36, 1)'
+            : 'margin-left 0.25s cubic-bezier(0.22, 1, 0.36, 1)',
         }}
       >
         <DashboardTopbar role={role} userName={userName} />

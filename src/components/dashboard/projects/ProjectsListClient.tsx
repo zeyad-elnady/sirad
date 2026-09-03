@@ -7,6 +7,7 @@ import Link from 'next/link';
 import type { UserRole } from '@prisma/client';
 import { Plus, Search, Filter, FolderKanban, Pencil, Calendar, ArrowUpRight } from 'lucide-react';
 import { format } from 'date-fns';
+import { useDashboardLang } from '@/context/DashboardLanguageContext';
 
 interface ProjectItem {
   id: string;
@@ -33,14 +34,6 @@ interface Props {
   projects: ProjectItem[];
 }
 
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-EG', {
-    style: 'currency',
-    currency: 'EGP',
-    minimumFractionDigits: 0,
-  }).format(amount);
-}
-
 const statusColors: Record<string, { bg: string; text: string; dot: string }> = {
   DRAFT: { bg: 'rgba(107,107,112,0.1)', text: '#6B6B70', dot: '#6B6B70' },
   ACTIVE: { bg: 'rgba(34,197,94,0.1)', text: '#22C55E', dot: '#22C55E' },
@@ -53,6 +46,7 @@ const statuses = ['ALL', 'DRAFT', 'ACTIVE', 'ON_HOLD', 'COMPLETED', 'CANCELLED']
 
 export default function ProjectsListClient({ role, projects }: Props) {
   const router = useRouter();
+  const { t, isRtl, formatCurrency } = useDashboardLang();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const accentColor = role === 'ZEYAD_TECH' ? '#B6FF33' : '#7C3AED';
@@ -90,7 +84,7 @@ export default function ProjectsListClient({ role, projects }: Props) {
             Projects
           </h1>
           <p style={{ fontSize: '13px', color: '#6B6B70', marginTop: '4px' }}>
-            {filtered.length} project{filtered.length !== 1 ? 's' : ''}
+            {filtered.length} {isRtl ? 'مشروع' : `project${filtered.length !== 1 ? 's' : ''}`}
           </p>
         </div>
         <Link
@@ -111,7 +105,7 @@ export default function ProjectsListClient({ role, projects }: Props) {
             transition: 'all 0.2s',
           }}
         >
-          <Plus size={16} /> New Project
+          <Plus size={16} /> {t('newProject')}
         </Link>
       </div>
 
@@ -143,7 +137,7 @@ export default function ProjectsListClient({ role, projects }: Props) {
           <Search size={16} style={{ color: '#6B6B70' }} />
           <input
             type="text"
-            placeholder="Search projects or clients..."
+            placeholder={t('searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={{
@@ -160,9 +154,22 @@ export default function ProjectsListClient({ role, projects }: Props) {
 
         {/* Status Pills */}
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-          <Filter size={14} style={{ color: '#6B6B70', marginRight: '4px' }} />
+          <Filter size={14} style={{ color: '#6B6B70', marginInlineEnd: '4px' }} />
           {statuses.map((s) => {
             const active = statusFilter === s;
+            const statusLabel =
+              s === 'ALL'
+                ? t('all')
+                : s === 'DRAFT'
+                ? t('draft')
+                : s === 'ACTIVE'
+                ? t('active')
+                : s === 'ON_HOLD'
+                ? t('onHold')
+                : s === 'COMPLETED'
+                ? t('completed')
+                : t('cancelled');
+
             return (
               <button
                 key={s}
@@ -178,10 +185,9 @@ export default function ProjectsListClient({ role, projects }: Props) {
                   fontFamily: '"Space Grotesk", sans-serif',
                   cursor: 'pointer',
                   transition: 'all 0.2s',
-                  textTransform: 'capitalize',
                 }}
               >
-                {s.replace(/_/g, ' ').toLowerCase()}
+                {statusLabel}
               </button>
             );
           })}
@@ -200,14 +206,26 @@ export default function ProjectsListClient({ role, projects }: Props) {
         {filtered.length === 0 ? (
           <div style={{ padding: '48px', textAlign: 'center', color: '#6B6B70' }}>
             <FolderKanban size={36} style={{ marginBottom: '12px', opacity: 0.3 }} />
-            <p style={{ fontSize: '14px' }}>No projects found</p>
+            <p style={{ fontSize: '14px' }}>{isRtl ? 'لا توجد مشاريع' : 'No projects found'}</p>
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '940px' }}>
               <thead>
                 <tr>
-                  {['Project', 'Client', 'Type', 'Amount', 'Salaries', 'Net Profit', 'Deposit', 'Timeline', 'Team', 'Status', 'Action'].map((h) => (
+                  {[
+                    t('projectTitle'),
+                    t('client'),
+                    t('projectType'),
+                    t('totalAmount'),
+                    t('salaries'),
+                    t('netProfit'),
+                    t('deposit'),
+                    isRtl ? 'الجدول الزمني' : 'Timeline',
+                    t('teamMembers'),
+                    t('status'),
+                    t('actions'),
+                  ].map((h) => (
                     <th
                       key={h}
                       style={{
@@ -217,7 +235,7 @@ export default function ProjectsListClient({ role, projects }: Props) {
                         textTransform: 'uppercase',
                         letterSpacing: '0.1em',
                         color: '#6B6B70',
-                        textAlign: 'left',
+                        textAlign: isRtl ? 'right' : 'left',
                         borderBottom: '1px solid rgba(255,255,255,0.04)',
                         whiteSpace: 'nowrap',
                       }}

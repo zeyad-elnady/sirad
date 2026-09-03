@@ -15,6 +15,7 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useDashboardLang } from '@/context/DashboardLanguageContext';
 
 interface StatsData {
   totalProjects: number;
@@ -44,17 +45,12 @@ interface Props {
   recentProjects: RecentProject[];
 }
 
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-EG', {
-    style: 'currency',
-    currency: 'EGP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
-function getGreeting(): string {
+function getGreeting(locale: string): string {
   const hour = new Date().getHours();
+  if (locale === 'ar') {
+    if (hour < 12) return 'صباح الخير';
+    return 'مساء الخير';
+  }
   if (hour < 12) return 'Good morning';
   if (hour < 18) return 'Good afternoon';
   return 'Good evening';
@@ -117,47 +113,48 @@ export default function DashboardOverviewClient({
   recentProjects,
 }: Props) {
   const isTech = role === 'ZEYAD_TECH';
-  const greeting = getGreeting();
+  const { t, isRtl, formatCurrency, locale } = useDashboardLang();
+  const greeting = getGreeting(locale);
 
   const statCards = [
     {
-      label: 'Total Projects',
+      label: isRtl ? 'إجمالي المشاريع' : 'Total Projects',
       value: stats.totalProjects.toString(),
       icon: <FolderKanban size={18} />,
       highlight: false,
     },
     {
-      label: 'Active Projects',
+      label: isRtl ? 'المشاريع النشطة' : 'Active Projects',
       value: stats.activeProjects.toString(),
       icon: <Zap size={18} />,
       highlight: true,
     },
     {
-      label: 'Total Clients',
+      label: isRtl ? 'العملاء' : 'Total Clients',
       value: stats.totalClients.toString(),
       icon: <Users size={18} />,
       highlight: false,
     },
     {
-      label: 'Employees',
+      label: t('employees'),
       value: stats.totalEmployees.toString(),
       icon: <UserCheck size={18} />,
       highlight: false,
     },
     {
-      label: 'Total Revenue',
+      label: t('totalRevenue'),
       value: formatCurrency(stats.totalRevenue),
       icon: <TrendingUp size={18} />,
       highlight: true,
     },
     {
-      label: 'Collected',
+      label: isRtl ? 'المتحصل' : 'Collected',
       value: formatCurrency(stats.totalCollected),
       icon: <Wallet size={18} />,
       highlight: false,
     },
     {
-      label: 'Outstanding',
+      label: isRtl ? 'المستحق' : 'Outstanding',
       value: formatCurrency(stats.outstandingBalance),
       icon: <AlertCircle size={18} />,
       highlight: stats.outstandingBalance > 0,
@@ -182,7 +179,7 @@ export default function DashboardOverviewClient({
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#B6FF33]/20 bg-[#B6FF33]/5 mb-3">
             <span className="w-2 h-2 rounded-full bg-[#B6FF33] animate-pulse" />
             <span className="font-headline text-[10px] uppercase tracking-[0.16em] text-[#B6FF33] font-bold">
-              Sirad Digital Command • {isTech ? 'Tech Systems' : 'Creative Marketing'}
+              Sirad Digital Command • {isTech ? t('techCommand') : t('marketingHub')}
             </span>
           </div>
 
@@ -192,7 +189,9 @@ export default function DashboardOverviewClient({
           </h1>
 
           <p className="text-[#e5e2e1]/60 text-sm md:text-base font-light max-w-2xl mt-2 font-body">
-            Real-time operations, client engagements, and financial intelligence for Sirad.
+            {isRtl
+              ? 'العمليات الفورية، مشاريع العملاء، والبيانات المالية لوكالة سيراد.'
+              : 'Real-time operations, client engagements, and financial intelligence for Sirad.'}
           </p>
         </div>
 
@@ -203,14 +202,14 @@ export default function DashboardOverviewClient({
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#B6FF33] text-[#121f00] font-headline text-xs uppercase tracking-wider font-bold hover:shadow-[0_0_25px_rgba(182,255,51,0.4)] transition-all duration-300 active:scale-95"
           >
             <Plus size={16} />
-            <span>New Project</span>
+            <span>{t('newProject')}</span>
           </Link>
           <Link
             href="/dashboard/finance"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/[0.1] bg-white/[0.04] text-[#e5e2e1] font-headline text-xs font-semibold hover:border-[#B6FF33]/40 hover:bg-[#B6FF33]/5 hover:text-[#B6FF33] transition-all duration-300"
           >
-            <span>Finance Hub</span>
-            <ArrowUpRight size={14} />
+            <span>{t('finance')}</span>
+            <ArrowUpRight size={14} style={{ transform: isRtl ? 'scaleX(-1)' : 'none' }} />
           </Link>
         </div>
       </motion.div>
@@ -282,10 +281,10 @@ export default function DashboardOverviewClient({
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/[0.06]">
           <div>
             <h2 className="font-headline text-lg font-bold text-[#e5e2e1] tracking-tight">
-              Recent Projects
+              {isRtl ? 'أحدث المشاريع' : 'Recent Projects'}
             </h2>
             <p className="text-xs text-[#e5e2e1]/50 mt-0.5 font-body">
-              Latest client deliverables and production status
+              {isRtl ? 'آخر المشاريع والتعاقدات المضافة للوكالة' : 'Latest client deliverables and production status'}
             </p>
           </div>
 
@@ -293,32 +292,34 @@ export default function DashboardOverviewClient({
             href="/dashboard/projects"
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[#B6FF33]/30 bg-[#B6FF33]/10 text-[#B6FF33] hover:bg-[#B6FF33] hover:text-[#121f00] font-headline text-xs font-bold transition-all duration-300"
           >
-            <span>View all</span>
-            <ArrowRight size={13} />
+            <span>{t('viewAll')}</span>
+            <ArrowRight size={13} style={{ transform: isRtl ? 'scaleX(-1)' : 'none' }} />
           </Link>
         </div>
 
         {/* Projects List */}
         {recentProjects.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-sm text-[#e5e2e1]/40 font-body">No projects found.</p>
+            <p className="text-sm text-[#e5e2e1]/40 font-body">
+              {isRtl ? 'لا توجد مشاريع مضافة بعد.' : 'No projects found.'}
+            </p>
             <Link
               href="/dashboard/projects/new"
               className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-full bg-[#B6FF33] text-[#121f00] font-headline text-xs font-bold"
             >
-              <Plus size={14} /> Create your first project
+              <Plus size={14} /> {isRtl ? 'إنشاء مشروعك الأول' : 'Create your first project'}
             </Link>
           </div>
         ) : (
           <div className="overflow-x-auto no-scrollbar">
-            <table className="w-full text-left">
+            <table className={`w-full ${isRtl ? 'text-right' : 'text-left'}`}>
               <thead>
                 <tr className="border-b border-white/[0.04] text-[11px] font-headline uppercase tracking-[0.14em] text-[#e5e2e1]/40">
-                  <th className="pb-3 font-semibold">Project</th>
-                  <th className="pb-3 font-semibold">Client</th>
-                  <th className="pb-3 font-semibold">Type</th>
-                  <th className="pb-3 font-semibold">Contract Value</th>
-                  <th className="pb-3 font-semibold text-right">Status</th>
+                  <th className="pb-3 font-semibold">{t('projectTitle')}</th>
+                  <th className="pb-3 font-semibold">{t('client')}</th>
+                  <th className="pb-3 font-semibold">{t('projectType')}</th>
+                  <th className="pb-3 font-semibold">{t('totalAmount')}</th>
+                  <th className={`pb-3 font-semibold ${isRtl ? 'text-left' : 'text-right'}`}>{t('status')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.03]">
@@ -372,7 +373,7 @@ export default function DashboardOverviewClient({
                       </td>
 
                       {/* Status Badge */}
-                      <td className="py-4 text-right">
+                      <td className={`py-4 ${isRtl ? 'text-left' : 'text-right'}`}>
                         <span
                           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-headline font-bold uppercase tracking-wider border ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}
                         >
