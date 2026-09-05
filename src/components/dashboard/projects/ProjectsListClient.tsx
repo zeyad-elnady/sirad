@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { UserRole } from '@prisma/client';
-import { Plus, Search, Filter, FolderKanban, Pencil, Calendar, ArrowUpRight, Trash2, AlertTriangle, Loader2 } from 'lucide-react';
+import { Plus, Search, Filter, FolderKanban, Pencil, Calendar, ArrowUpRight, Trash2, AlertTriangle, Loader2, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { useDashboardLang } from '@/context/DashboardLanguageContext';
 
@@ -243,38 +243,51 @@ export default function ProjectsListClient({ role, projects }: Props) {
             <p style={{ fontSize: '14px' }}>{isRtl ? 'لا توجد مشاريع' : 'No projects found'}</p>
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '940px' }}>
+          <div
+            style={{
+              width: '100%',
+              overflowX: 'hidden',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+            }}
+          >
+            <table
+              style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                tableLayout: 'auto',
+              }}
+            >
               <thead>
                 <tr>
                   {[
-                    t('projectTitle'),
-                    t('client'),
-                    t('projectType'),
-                    t('totalAmount'),
-                    t('salaries'),
-                    t('netProfit'),
-                    t('deposit'),
-                    isRtl ? 'الجدول الزمني' : 'Timeline',
-                    t('teamMembers'),
-                    t('status'),
-                    t('actions'),
-                  ].map((h) => (
+                    { label: t('projectTitle'), align: isRtl ? 'right' : 'left' },
+                    { label: t('client'), align: isRtl ? 'right' : 'left' },
+                    { label: t('projectType'), align: isRtl ? 'right' : 'left' },
+                    { label: t('totalAmount'), align: isRtl ? 'right' : 'left' },
+                    { label: t('salaries'), align: isRtl ? 'right' : 'left' },
+                    { label: t('netProfit'), align: isRtl ? 'right' : 'left' },
+                    { label: t('deposit'), align: isRtl ? 'right' : 'left' },
+                    { label: isRtl ? 'الجدول الزمني' : 'Timeline', align: isRtl ? 'right' : 'left' },
+                    { label: t('teamMembers'), align: 'center' },
+                    { label: t('status'), align: isRtl ? 'right' : 'left' },
+                    { label: t('actions'), align: isRtl ? 'left' : 'right' },
+                  ].map((col, idx) => (
                     <th
-                      key={h}
+                      key={idx}
                       style={{
-                        padding: '14px 16px',
+                        padding: '12px 10px',
                         fontSize: '10px',
                         fontWeight: 600,
                         textTransform: 'uppercase',
-                        letterSpacing: '0.1em',
+                        letterSpacing: '0.06em',
                         color: '#6B6B70',
-                        textAlign: isRtl ? 'right' : 'left',
+                        textAlign: col.align as any,
                         borderBottom: '1px solid rgba(255,255,255,0.04)',
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      {h}
+                      {col.label}
                     </th>
                   ))}
                 </tr>
@@ -297,64 +310,70 @@ export default function ProjectsListClient({ role, projects }: Props) {
                       onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.02)'; }}
                       onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                     >
-                      <td style={{ padding: '14px 16px' }}>
+                      <td style={{ padding: '12px 10px', whiteSpace: 'nowrap' }}>
                         <span style={{ color: '#FFFFFF', fontWeight: 600, fontSize: '13px' }}>
                           {project.title}
                         </span>
                       </td>
-                      <td style={{ padding: '14px 16px', color: '#8B8B90', fontSize: '13px' }}>{project.clientName}</td>
-                      <td style={{ padding: '14px 16px' }}>
-                        <span style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '6px', background: 'rgba(255,255,255,0.04)', color: '#8B8B90', textTransform: 'capitalize' }}>
+                      <td style={{ padding: '12px 10px', color: '#8B8B90', fontSize: '12px', whiteSpace: 'nowrap' }}>
+                        {project.clientName}
+                      </td>
+                      <td style={{ padding: '12px 10px', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: '11px', padding: '2px 7px', borderRadius: '6px', background: 'rgba(255,255,255,0.04)', color: '#8B8B90', textTransform: 'capitalize' }}>
                           {type.replace(/_/g, ' ').toLowerCase()}
                         </span>
                       </td>
-                      <td style={{ padding: '14px 16px', fontSize: '13px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif' }}>
+                      <td style={{ padding: '12px 10px', fontSize: '12px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', whiteSpace: 'nowrap' }}>
                         {formatCurrency(project.totalAmount)}
                       </td>
-                      <td style={{ padding: '14px 16px', fontSize: '13px', color: salaries > 0 ? '#EF4444' : '#6B6B70', fontFamily: '"Space Grotesk", sans-serif' }}>
+                      <td style={{ padding: '12px 10px', fontSize: '12px', color: salaries > 0 ? '#EF4444' : '#6B6B70', fontFamily: '"Space Grotesk", sans-serif', whiteSpace: 'nowrap' }}>
                         {salaries > 0 ? `-${formatCurrency(salaries)}` : formatCurrency(0)}
                       </td>
-                      <td style={{ padding: '14px 16px', fontSize: '13px', fontWeight: 700, color: profitVal >= 0 ? '#22C55E' : '#DC2626', fontFamily: '"Space Grotesk", sans-serif' }}>
+                      <td style={{ padding: '12px 10px', fontSize: '12px', fontWeight: 700, color: profitVal >= 0 ? '#22C55E' : '#DC2626', fontFamily: '"Space Grotesk", sans-serif', whiteSpace: 'nowrap' }}>
                         {formatCurrency(profitVal)}
                       </td>
-                      <td style={{ padding: '14px 16px', fontSize: '13px', color: '#22C55E' }}>
+                      <td style={{ padding: '12px 10px', fontSize: '12px', color: '#22C55E', whiteSpace: 'nowrap' }}>
                         {formatCurrency(project.depositPaid)}
                       </td>
-                      <td style={{ padding: '14px 16px', fontSize: '12px', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '12px 10px', fontSize: '11px', whiteSpace: 'nowrap' }}>
                         {project.deadline ? (
                           <div>
                             <div style={{ color: '#E8E4E0', fontWeight: 500 }}>
-                              Due {format(new Date(project.deadline), 'MMM d, yyyy')}
+                              {format(new Date(project.deadline), 'MMM d, yyyy')}
                             </div>
                             {project.startDate && (
-                              <div style={{ fontSize: '11px', color: '#6B6B70', marginTop: '2px' }}>
-                                From {format(new Date(project.startDate), 'MMM d')}
+                              <div style={{ fontSize: '10px', color: '#6B6B70' }}>
+                                {isRtl ? 'من' : 'From'} {format(new Date(project.startDate), 'MMM d')}
                               </div>
                             )}
                           </div>
                         ) : project.startDate ? (
                           <div style={{ color: '#8B8B90' }}>
-                            Started {format(new Date(project.startDate), 'MMM d, yyyy')}
+                            {format(new Date(project.startDate), 'MMM d, yyyy')}
                           </div>
                         ) : (
                           <span style={{ color: '#555558' }}>—</span>
                         )}
                       </td>
-                      <td style={{ padding: '14px 16px', fontSize: '12px', color: '#8B8B90' }}>
-                        {project.salesRepName || '—'}
+                      <td style={{ padding: '12px 10px', fontSize: '12px', color: '#8B8B90', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                        {project.employeeCount > 0 ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <Users size={12} style={{ opacity: 0.6 }} />
+                            {project.employeeCount}
+                          </span>
+                        ) : (
+                          '—'
+                        )}
                       </td>
-                      <td style={{ padding: '14px 16px', fontSize: '12px', color: '#8B8B90' }}>
-                        {project.employeeCount}
-                      </td>
-                      <td style={{ padding: '14px 16px' }}>
+                      <td style={{ padding: '12px 10px', whiteSpace: 'nowrap' }}>
                         <span
                           style={{
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '6px',
+                            gap: '5px',
                             fontSize: '11px',
                             fontWeight: 500,
-                            padding: '4px 10px',
+                            padding: '3px 8px',
                             borderRadius: '20px',
                             background: style.bg,
                             color: style.text,
@@ -364,8 +383,8 @@ export default function ProjectsListClient({ role, projects }: Props) {
                           {project.status.replace(/_/g, ' ')}
                         </span>
                       </td>
-                      <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <td style={{ padding: '12px 10px', whiteSpace: 'nowrap', textAlign: isRtl ? 'left' : 'right' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                           <button
                             type="button"
                             onClick={(e) => {
@@ -375,16 +394,17 @@ export default function ProjectsListClient({ role, projects }: Props) {
                             style={{
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '5px',
-                              padding: '6px 12px',
+                              gap: '4px',
+                              padding: '5px 10px',
                               borderRadius: '8px',
                               border: '1px solid rgba(255,255,255,0.08)',
                               background: 'rgba(255,255,255,0.03)',
                               color: '#E8E4E0',
-                              fontSize: '12px',
+                              fontSize: '11px',
                               fontWeight: 600,
                               cursor: 'pointer',
                               transition: 'all 0.15s',
+                              whiteSpace: 'nowrap',
                             }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.borderColor = `${accentColor}80`;
@@ -397,7 +417,7 @@ export default function ProjectsListClient({ role, projects }: Props) {
                               e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
                             }}
                           >
-                            <Pencil size={12} /> {isRtl ? 'عرض وتعديل' : 'Open & Edit'}
+                            <Pencil size={12} /> {isRtl ? 'تعديل' : 'Edit'}
                           </button>
 
                           <button
@@ -413,7 +433,7 @@ export default function ProjectsListClient({ role, projects }: Props) {
                               display: 'inline-flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              padding: '6px 8px',
+                              padding: '5px 7px',
                               borderRadius: '8px',
                               border: '1px solid rgba(239, 68, 68, 0.25)',
                               background: 'rgba(239, 68, 68, 0.08)',
@@ -430,7 +450,7 @@ export default function ProjectsListClient({ role, projects }: Props) {
                               e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)';
                             }}
                           >
-                            <Trash2 size={13} />
+                            <Trash2 size={12} />
                           </button>
                         </div>
                       </td>
