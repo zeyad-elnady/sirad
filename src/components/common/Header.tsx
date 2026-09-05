@@ -44,7 +44,53 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [bubbleOrigin, setBubbleOrigin] = useState({ x: '50%', y: '40px' });
   const isRtl = locale === 'ar';
+
+  const handleOpenMenu = (e: React.MouseEvent<HTMLElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const centerX = Math.round(rect.left + rect.width / 2);
+    const centerY = Math.round(rect.top + rect.height / 2);
+    setBubbleOrigin({ x: `${centerX}px`, y: `${centerY}px` });
+    setIsMenuOpen(true);
+  };
+
+  const bubbleVariants = {
+    closed: (origin: { x: string; y: string }) => ({
+      clipPath: `circle(0% at ${origin.x} ${origin.y})`,
+      transition: {
+        duration: 0.55,
+        ease: [0.32, 0, 0.67, 0] as const,
+      },
+    }),
+    open: (origin: { x: string; y: string }) => ({
+      clipPath: `circle(160% at ${origin.x} ${origin.y})`,
+      transition: {
+        duration: 0.75,
+        ease: [0.16, 1, 0.3, 1] as const,
+      },
+    }),
+  };
+
+  const contentVariants = {
+    closed: {
+      opacity: 0,
+      y: 20,
+      transition: {
+        duration: 0.22,
+        ease: 'easeOut' as const,
+      },
+    },
+    open: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        delay: 0.18,
+        duration: 0.5,
+        ease: [0.16, 1, 0.3, 1] as const,
+      },
+    },
+  };
 
   // Close menu on route change
   useEffect(() => {
@@ -173,7 +219,7 @@ export default function Header() {
               type="button"
               className="md:hidden flex flex-col justify-center items-center w-9 h-9 space-y-1.5 z-40 relative rounded-full border border-white/10 bg-white/5 active:scale-95 transition-transform"
               aria-label="Open Menu"
-              onClick={() => setIsMenuOpen(true)}
+              onClick={handleOpenMenu}
             >
               <span className="w-4 h-0.5 bg-[#B6FF33] rounded-full" />
               <span className="w-3 h-0.5 bg-[#B6FF33] rounded-full" />
@@ -195,7 +241,7 @@ export default function Header() {
       >
         <button
           type="button"
-          onClick={() => setIsMenuOpen(true)}
+          onClick={handleOpenMenu}
           className="pointer-events-auto group flex items-center gap-3.5 px-6 py-2.5 rounded-full bg-[#131313]/90 hover:bg-[#1a1a1d] backdrop-blur-2xl border border-white/15 hover:border-[#B6FF33]/50 shadow-[0_12px_35px_rgba(0,0,0,0.7),0_0_25px_rgba(182,255,51,0.18)] cursor-pointer transition-all duration-300 active:scale-95"
           aria-label="Open Navigation Menu"
         >
@@ -213,17 +259,59 @@ export default function Header() {
         </button>
       </motion.div>
 
-      {/* ─── 3. BAUNFIRE-STYLE FULL-SCREEN MENU OVERLAY ─── */}
-      <AnimatePresence>
+      {/* ─── 3. BAUNFIRE-STYLE FULL-SCREEN MENU OVERLAY WITH BUBBLE EFFECT ─── */}
+      <AnimatePresence custom={bubbleOrigin}>
         {isMenuOpen && (
-          <motion.div
-            key="baunfire-overlay"
-            initial={{ opacity: 0, y: -20, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.98 }}
-            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-[100] bg-[#0c0c0d]/98 backdrop-blur-3xl text-[#e5e2e1] flex flex-col justify-between p-6 sm:p-10 md:p-14 lg:p-16 overflow-y-auto"
-          >
+          <>
+            {/* Luminous Expanding Bubble Shockwave Ripple */}
+            <motion.div
+              key="bubble-glow-disc"
+              initial={{
+                left: bubbleOrigin.x,
+                top: bubbleOrigin.y,
+                width: 0,
+                height: 0,
+                x: '-50%',
+                y: '-50%',
+                opacity: 0.85,
+              }}
+              animate={{
+                width: '280vmax',
+                height: '280vmax',
+                opacity: 0,
+              }}
+              exit={{
+                opacity: 0,
+                transition: { duration: 0.2 },
+              }}
+              transition={{
+                duration: 0.85,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              className="pointer-events-none fixed z-[99] rounded-full border-2 border-[#B6FF33]/60 bg-radial from-[#B6FF33]/30 via-[#B6FF33]/5 to-transparent"
+            />
+
+            {/* Bubble-Clipped Full-screen Overlay */}
+            <motion.div
+              key="baunfire-overlay"
+              custom={bubbleOrigin}
+              variants={bubbleVariants}
+              initial="closed"
+              animate="open"
+              exit="closed"
+              style={{
+                willChange: 'clip-path',
+              }}
+              className="fixed inset-0 z-[100] bg-[#0c0c0d]/98 backdrop-blur-3xl text-[#e5e2e1] flex flex-col justify-between p-6 sm:p-10 md:p-14 lg:p-16 overflow-y-auto"
+            >
+              {/* Inner Content with Graceful Fade & Slide */}
+              <motion.div
+                variants={contentVariants}
+                initial="closed"
+                animate="open"
+                exit="closed"
+                className="w-full flex-1 flex flex-col justify-between"
+              >
             {/* Ambient Background Glows */}
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(182,255,51,0.08)_0%,transparent_70%)] blur-[100px] pointer-events-none -z-10" />
             <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[radial-gradient(circle,rgba(34,197,94,0.05)_0%,transparent_70%)] blur-[100px] pointer-events-none -z-10" />
@@ -443,7 +531,9 @@ export default function Header() {
                 Crafted with Precision ✦ Sirad
               </span>
             </div>
-          </motion.div>
+              </motion.div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>
