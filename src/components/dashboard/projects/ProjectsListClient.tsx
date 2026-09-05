@@ -1,11 +1,11 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { UserRole } from '@prisma/client';
-import { Plus, Search, Filter, FolderKanban, Pencil, Calendar, ArrowUpRight } from 'lucide-react';
+import { Plus, Search, Filter, FolderKanban, Pencil, Calendar, ArrowUpRight, Trash2, AlertTriangle, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useDashboardLang } from '@/context/DashboardLanguageContext';
 
@@ -51,7 +51,41 @@ export default function ProjectsListClient({ role, projects }: Props) {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const accentColor = role === 'ZEYAD_TECH' ? '#B6FF33' : '#7C3AED';
 
-  const filtered = projects.filter((p) => {
+  const [projectList, setProjectList] = useState<ProjectItem[]>(projects);
+  useEffect(() => {
+    setProjectList(projects);
+  }, [projects]);
+
+  const [projectToDelete, setProjectToDelete] = useState<ProjectItem | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
+  async function handleDelete() {
+    if (!projectToDelete) return;
+    setIsDeleting(true);
+    setDeleteError('');
+    try {
+      const res = await fetch(`/api/dashboard/projects/${projectToDelete.id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setDeleteError(data.error || 'Failed to delete project');
+        return;
+      }
+      setProjectList((prev) => prev.filter((p) => p.id !== projectToDelete.id));
+      setShowDeleteModal(false);
+      setProjectToDelete(null);
+      router.refresh();
+    } catch {
+      setDeleteError('Something went wrong. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
+  const filtered = projectList.filter((p) => {
     const matchesSearch =
       p.title.toLowerCase().includes(search.toLowerCase()) ||
       p.clientName.toLowerCase().includes(search.toLowerCase());
@@ -331,39 +365,74 @@ export default function ProjectsListClient({ role, projects }: Props) {
                         </span>
                       </td>
                       <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            router.push(`/dashboard/projects/${project.id}`);
-                          }}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '5px',
-                            padding: '6px 12px',
-                            borderRadius: '8px',
-                            border: '1px solid rgba(255,255,255,0.08)',
-                            background: 'rgba(255,255,255,0.03)',
-                            color: '#E8E4E0',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            transition: 'all 0.15s',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.borderColor = `${accentColor}80`;
-                            e.currentTarget.style.color = accentColor;
-                            e.currentTarget.style.background = `${accentColor}10`;
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
-                            e.currentTarget.style.color = '#E8E4E0';
-                            e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                          }}
-                        >
-                          <Pencil size={12} /> Open & Edit
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`/dashboard/projects/${project.id}`);
+                            }}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              padding: '6px 12px',
+                              borderRadius: '8px',
+                              border: '1px solid rgba(255,255,255,0.08)',
+                              background: 'rgba(255,255,255,0.03)',
+                              color: '#E8E4E0',
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              transition: 'all 0.15s',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.borderColor = `${accentColor}80`;
+                              e.currentTarget.style.color = accentColor;
+                              e.currentTarget.style.background = `${accentColor}10`;
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+                              e.currentTarget.style.color = '#E8E4E0';
+                              e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                            }}
+                          >
+                            <Pencil size={12} /> {isRtl ? 'عرض وتعديل' : 'Open & Edit'}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setProjectToDelete(project);
+                              setDeleteError('');
+                              setShowDeleteModal(true);
+                            }}
+                            title={t('deleteProject')}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              padding: '6px 8px',
+                              borderRadius: '8px',
+                              border: '1px solid rgba(239, 68, 68, 0.25)',
+                              background: 'rgba(239, 68, 68, 0.08)',
+                              color: '#EF4444',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.6)';
+                              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.18)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.25)';
+                              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)';
+                            }}
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -373,6 +442,154 @@ export default function ProjectsListClient({ role, projects }: Props) {
           </div>
         )}
       </div>
+
+      {/* Delete Project Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && projectToDelete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.8)',
+              backdropFilter: 'blur(8px)',
+              zIndex: 110,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px',
+            }}
+            onClick={() => !isDeleting && setShowDeleteModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: '#121214',
+                borderRadius: '16px',
+                padding: '28px',
+                width: '100%',
+                maxWidth: '480px',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 30px rgba(239, 68, 68, 0.15)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
+                <div
+                  style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '12px',
+                    background: 'rgba(239, 68, 68, 0.15)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#EF4444',
+                    flexShrink: 0,
+                  }}
+                >
+                  <AlertTriangle size={24} />
+                </div>
+                <div>
+                  <h3
+                    style={{
+                      fontSize: '18px',
+                      fontWeight: 700,
+                      fontFamily: '"Space Grotesk", sans-serif',
+                      color: '#FFFFFF',
+                      margin: 0,
+                    }}
+                  >
+                    {t('deleteProjectConfirmTitle')}
+                  </h3>
+                  <p style={{ fontSize: '13px', color: '#8E8E93', margin: '4px 0 0' }}>
+                    {projectToDelete.title}
+                  </p>
+                </div>
+              </div>
+
+              {deleteError && (
+                <div
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                    color: '#EF4444',
+                    fontSize: '13px',
+                    marginBottom: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <AlertTriangle size={16} />
+                  {deleteError}
+                </div>
+              )}
+
+              <p
+                style={{
+                  fontSize: '13px',
+                  color: '#A1A1AA',
+                  lineHeight: '1.6',
+                  marginBottom: '24px',
+                }}
+              >
+                {t('deleteProjectConfirmDesc')}
+              </p>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  type="button"
+                  disabled={isDeleting}
+                  onClick={() => setShowDeleteModal(false)}
+                  style={{
+                    padding: '10px 18px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    background: 'rgba(255,255,255,0.03)',
+                    color: '#E8E4E0',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: isDeleting ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {t('cancel')}
+                </button>
+                <button
+                  type="button"
+                  disabled={isDeleting}
+                  onClick={handleDelete}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 20px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(239, 68, 68, 0.4)',
+                    background: 'linear-gradient(135deg, #EF4444, #DC2626)',
+                    color: '#FFFFFF',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: isDeleting ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 0 20px rgba(239, 68, 68, 0.3)',
+                    opacity: isDeleting ? 0.7 : 1,
+                  }}
+                >
+                  {isDeleting ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
+                  {isDeleting ? t('deleting') : t('deleteProject')}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

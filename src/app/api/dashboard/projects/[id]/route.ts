@@ -122,19 +122,43 @@ export async function DELETE(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    // Soft delete by changing status
-    await db.project.update({
-      where: { id },
-      data: { status: 'CANCELLED' },
-    });
+    // Permanently delete project with all its cascaded dependencies
+    await db.$transaction(async (tx) => {
+      // 1. Delete associated employee assignments
+      await tx.projectEmployee.deleteMany({ where: { projectId: id } });
 
-    await db.auditLog.create({
-      data: {
-        userId: session.userId,
-        action: 'DELETE_PROJECT',
-        entity: 'Project',
-        entityId: id,
-      },
+      // 2. Delete contract and installments
+      const contract = await tx.contract.findUnique({ where: { projectId: id } });
+      if (contract) {
+        await tx.installment.deleteMany({ where: { contractId: contract.id } });
+        await tx.contract.delete({ where: { id: contract.id } });
+      }
+
+      // 3. Delete recurring expenses
+      await tx.recurringExpense.deleteMany({ where: { projectId: id } });
+
+      // 4. Delete production details
+      await tx.productionDetail.deleteMany({ where: { projectId: id } });
+
+      // 5. Unlink any employee transactions associated with this project (preserves salary records)
+      await tx.employeeTransaction.updateMany({
+        where: { projectId: id },
+        data: { projectId: null },
+      });
+
+      // 6. Delete the project itself
+      await tx.project.delete({ where: { id } });
+
+      // 7. Record audit log
+      await tx.auditLog.create({
+        data: {
+          userId: session.userId,
+          action: 'DELETE_PROJECT',
+          entity: 'Project',
+          entityId: id,
+          details: { title: existing.title, department: existing.department },
+        },
+      });
     });
 
     return NextResponse.json({ success: true });

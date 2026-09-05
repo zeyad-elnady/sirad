@@ -56,6 +56,11 @@ export const dashboardTranslations = {
     // Project Details
     projectDetails: 'Project Details',
     editProject: 'Edit Project',
+    deleteProject: 'Delete Project',
+    deleteProjectConfirmTitle: 'Delete Project?',
+    deleteProjectConfirmDesc: 'Are you sure you want to delete this project? This will permanently delete the project, its contract, installments, and assigned employee data. This action cannot be undone.',
+    deleteProjectSuccess: 'Project deleted successfully',
+    deleting: 'Deleting...',
     newProject: 'New Project',
     createNewProject: 'Create New Project',
     projectTitle: 'Project Title',
@@ -183,6 +188,11 @@ export const dashboardTranslations = {
     // Project Details
     projectDetails: 'تفاصيل المشروع',
     editProject: 'تعديل المشروع',
+    deleteProject: 'حذف المشروع',
+    deleteProjectConfirmTitle: 'هل تريد حذف المشروع؟',
+    deleteProjectConfirmDesc: 'هل أنت متأكد من حذف هذا المشروع؟ سيؤدي هذا إلى حذف المشروع وعقده وأقساطه وبيانات الموظفين المرتبطين به نهائياً. لا يمكن التراجع عن هذا الإجراء.',
+    deleteProjectSuccess: 'تم حذف المشروع بنجاح',
+    deleting: 'جاري الحذف...',
     newProject: 'مشروع جديد',
     createNewProject: 'إنشاء مشروع جديد',
     projectTitle: 'اسم المشروع',

@@ -132,6 +132,11 @@ export default function ProjectDetailClient({
   const [isCreatingSalesRepInEdit, setIsCreatingSalesRepInEdit] = useState(false);
   const [salesRepErrorInEdit, setSalesRepErrorInEdit] = useState('');
 
+  // Delete Project State
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
   async function createNewSalesRepInEdit() {
     if (!newSalesRepNameInEdit.trim()) return;
     setIsCreatingSalesRepInEdit(true);
@@ -275,6 +280,27 @@ export default function ProjectDetailClient({
       setEditError('Something went wrong. Please try again.');
     } finally {
       setIsUpdating(false);
+    }
+  }
+
+  async function handleDeleteProject() {
+    setIsDeleting(true);
+    setDeleteError('');
+    try {
+      const res = await fetch(`/api/dashboard/projects/${p.id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setDeleteError(data.error || 'Failed to delete project');
+        return;
+      }
+      setShowDeleteModal(false);
+      router.push('/dashboard/projects');
+    } catch {
+      setDeleteError('Something went wrong. Please try again.');
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -552,6 +578,39 @@ export default function ProjectDetailClient({
 
         {/* Header Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button
+            type="button"
+            onClick={() => {
+              setDeleteError('');
+              setShowDeleteModal(true);
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '9px 16px',
+              borderRadius: '10px',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              background: 'rgba(239, 68, 68, 0.08)',
+              color: '#EF4444',
+              fontSize: '13px',
+              fontWeight: 600,
+              fontFamily: '"Space Grotesk", sans-serif',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.16)';
+              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)';
+              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+            }}
+          >
+            <Trash2 size={15} /> {t('deleteProject')}
+          </button>
+
           <button
             type="button"
             onClick={openEditModal}
@@ -1822,51 +1881,226 @@ export default function ProjectDetailClient({
                 </div>
 
                 {/* Action Buttons */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
                   <button
                     type="button"
                     disabled={isUpdating}
-                    onClick={() => setShowEditModal(false)}
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setDeleteError('');
+                      setShowDeleteModal(true);
+                    }}
                     style={{
-                      padding: '10px 18px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '10px 14px',
                       borderRadius: '10px',
-                      border: '1px solid rgba(255,255,255,0.08)',
-                      background: 'rgba(255,255,255,0.03)',
-                      color: '#E8E4E0',
+                      border: '1px solid rgba(239, 68, 68, 0.25)',
+                      background: 'rgba(239, 68, 68, 0.08)',
+                      color: '#EF4444',
                       fontSize: '13px',
                       fontWeight: 600,
                       cursor: 'pointer',
+                      transition: 'all 0.15s',
                     }}
                   >
-                    Cancel
+                    <Trash2 size={14} /> {t('deleteProject')}
                   </button>
-                  <button
-                    type="submit"
-                    disabled={isUpdating}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '10px 22px',
-                      borderRadius: '10px',
-                      border: 'none',
-                      background:
-                        accentColor === '#B6FF33'
-                          ? 'linear-gradient(135deg, #B6FF33, #96da00)'
-                          : `linear-gradient(135deg, ${accentColor}, ${accentColor}90)`,
-                      color: accentColor === '#B6FF33' ? '#121f00' : '#FFFFFF',
-                      fontSize: '13px',
-                      fontWeight: 700,
-                      cursor: isUpdating ? 'not-allowed' : 'pointer',
-                      opacity: isUpdating ? 0.7 : 1,
-                    }}
-                  >
-                    {isUpdating && <Loader2 size={15} className="animate-spin" />}
-                    {isUpdating ? 'Saving...' : 'Save Changes'}
-                  </button>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                      type="button"
+                      disabled={isUpdating}
+                      onClick={() => setShowEditModal(false)}
+                      style={{
+                        padding: '10px 18px',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        background: 'rgba(255,255,255,0.03)',
+                        color: '#E8E4E0',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {t('cancel')}
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isUpdating}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '10px 22px',
+                        borderRadius: '10px',
+                        border: 'none',
+                        background:
+                          accentColor === '#B6FF33'
+                            ? 'linear-gradient(135deg, #B6FF33, #96da00)'
+                            : `linear-gradient(135deg, ${accentColor}, ${accentColor}90)`,
+                        color: accentColor === '#B6FF33' ? '#121f00' : '#FFFFFF',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        cursor: isUpdating ? 'not-allowed' : 'pointer',
+                        opacity: isUpdating ? 0.7 : 1,
+                      }}
+                    >
+                      {isUpdating && <Loader2 size={15} className="animate-spin" />}
+                      {isUpdating ? 'Saving...' : 'Save Changes'}
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Project Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.8)',
+              backdropFilter: 'blur(8px)',
+              zIndex: 110,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px',
+            }}
+            onClick={() => !isDeleting && setShowDeleteModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: '#121214',
+                borderRadius: '16px',
+                padding: '28px',
+                width: '100%',
+                maxWidth: '480px',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 30px rgba(239, 68, 68, 0.15)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
+                <div
+                  style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '12px',
+                    background: 'rgba(239, 68, 68, 0.15)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#EF4444',
+                    flexShrink: 0,
+                  }}
+                >
+                  <AlertTriangle size={24} />
+                </div>
+                <div>
+                  <h3
+                    style={{
+                      fontSize: '18px',
+                      fontWeight: 700,
+                      fontFamily: '"Space Grotesk", sans-serif',
+                      color: '#FFFFFF',
+                      margin: 0,
+                    }}
+                  >
+                    {t('deleteProjectConfirmTitle')}
+                  </h3>
+                  <p style={{ fontSize: '13px', color: '#8E8E93', margin: '4px 0 0' }}>
+                    {p.title}
+                  </p>
+                </div>
+              </div>
+
+              {deleteError && (
+                <div
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                    color: '#EF4444',
+                    fontSize: '13px',
+                    marginBottom: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <AlertTriangle size={16} />
+                  {deleteError}
+                </div>
+              )}
+
+              <p
+                style={{
+                  fontSize: '13px',
+                  color: '#A1A1AA',
+                  lineHeight: '1.6',
+                  marginBottom: '24px',
+                }}
+              >
+                {t('deleteProjectConfirmDesc')}
+              </p>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  type="button"
+                  disabled={isDeleting}
+                  onClick={() => setShowDeleteModal(false)}
+                  style={{
+                    padding: '10px 18px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    background: 'rgba(255,255,255,0.03)',
+                    color: '#E8E4E0',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: isDeleting ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {t('cancel')}
+                </button>
+                <button
+                  type="button"
+                  disabled={isDeleting}
+                  onClick={handleDeleteProject}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 20px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(239, 68, 68, 0.4)',
+                    background: 'linear-gradient(135deg, #EF4444, #DC2626)',
+                    color: '#FFFFFF',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: isDeleting ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 0 20px rgba(239, 68, 68, 0.3)',
+                    opacity: isDeleting ? 0.7 : 1,
+                  }}
+                >
+                  {isDeleting ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
+                  {isDeleting ? t('deleting') : t('deleteProject')}
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
