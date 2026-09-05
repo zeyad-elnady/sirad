@@ -5,7 +5,11 @@
     "services": "Services",
     "about": "About",
     "contact": "Contact",
-    "getQuote": "Get a Quote"
+    "getQuote": "Get a Quote",
+    "menu": "Menu",
+    "close": "Close",
+    "getInTouch": "Get in Touch",
+    "location": "Cairo, Egypt"
   },
   "Hero": {
     "badge": "Sirad Creative Hub",
