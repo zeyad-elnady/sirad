@@ -42,10 +42,15 @@ services:
         condition: service_healthy
     networks:
       - sirad-network
+      - coolify
+    labels:
+      - "traefik.docker.network=coolify"
 
 networks:
   sirad-network:
     driver: bridge
+  coolify:
+    external: true
 
 volumes:
   sirad_pgdata:
