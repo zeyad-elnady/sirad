@@ -1,7 +1,8 @@
-import { getSession, getDepartmentForRole } from '@/lib/auth';
+import { getSession } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { redirect } from 'next/navigation';
 import DashboardOverviewClient from '@/components/dashboard/DashboardOverviewClient';
+import { getCompanySetting } from '@/lib/company-value';
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -9,13 +10,14 @@ export default async function DashboardPage() {
 
   const department = session.department;
 
-  // Fetch aggregated stats
+  // Fetch aggregated stats & company setting
   const [
     totalProjects,
     activeProjects,
     totalClients,
     totalEmployees,
     recentProjects,
+    companySetting,
   ] = await Promise.all([
     db.project.count({ where: { department } }),
     db.project.count({ where: { department, status: 'ACTIVE' } }),
@@ -27,6 +29,7 @@ export default async function DashboardPage() {
       take: 5,
       include: { client: true },
     }),
+    getCompanySetting(),
   ]);
 
   // Calculate financial sums
@@ -42,6 +45,7 @@ export default async function DashboardPage() {
     <DashboardOverviewClient
       role={session.role}
       userName={session.name}
+      companySetting={companySetting}
       stats={{
         totalProjects,
         activeProjects,
@@ -50,6 +54,7 @@ export default async function DashboardPage() {
         totalRevenue,
         totalCollected,
         outstandingBalance: totalRevenue - totalCollected,
+        companyNetValue: companySetting.companyNetValue,
       }}
       recentProjects={recentProjects.map((p) => ({
         id: p.id,

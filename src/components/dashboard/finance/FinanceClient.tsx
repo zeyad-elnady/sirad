@@ -15,10 +15,21 @@ import {
   Percent,
   Sparkles,
 } from 'lucide-react';
+import CompanyNetValueCard from '../CompanyNetValueCard';
+
+interface CompanySettingData {
+  id: string;
+  companyNetValue: number;
+  currency: string;
+  notes: string | null;
+  updatedAt: string;
+  updatedBy: string | null;
+}
 
 interface Props {
   role: UserRole;
   overview: FinanceOverview;
+  companySetting?: CompanySettingData;
 }
 
 function formatCurrency(amount: number): string {
@@ -29,7 +40,7 @@ function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
-export default function FinanceClient({ role, overview }: Props) {
+export default function FinanceClient({ role, overview, companySetting }: Props) {
   const { department } = useDashboardDepartment();
   const isTech = role === 'ADMIN' ? department === 'TECH' : role === 'ZEYAD_TECH';
 
@@ -133,6 +144,16 @@ export default function FinanceClient({ role, overview }: Props) {
           Complete cashflow, collected retainers, milestone installments, and profit analytics.
         </p>
       </div>
+
+      {/* Company Net Value (Bank Account Balance) Treasury Banner */}
+      <CompanyNetValueCard
+        initialValue={companySetting?.companyNetValue ?? 0}
+        initialNotes={companySetting?.notes}
+        lastUpdated={companySetting?.updatedAt}
+        updatedBy={companySetting?.updatedBy}
+        canEdit={role === 'ADMIN'}
+        variant="banner"
+      />
 
       {/* Main Financial Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">

@@ -17,6 +17,16 @@ import {
 import Link from 'next/link';
 import { useDashboardLang } from '@/context/DashboardLanguageContext';
 import { useDashboardDepartment } from '@/context/DashboardDepartmentContext';
+import CompanyNetValueCard from './CompanyNetValueCard';
+
+interface CompanySettingData {
+  id: string;
+  companyNetValue: number;
+  currency: string;
+  notes: string | null;
+  updatedAt: string;
+  updatedBy: string | null;
+}
 
 interface StatsData {
   totalProjects: number;
@@ -26,6 +36,7 @@ interface StatsData {
   totalRevenue: number;
   totalCollected: number;
   outstandingBalance: number;
+  companyNetValue?: number;
 }
 
 interface RecentProject {
@@ -42,6 +53,7 @@ interface RecentProject {
 interface Props {
   role: UserRole;
   userName: string;
+  companySetting?: CompanySettingData;
   stats: StatsData;
   recentProjects: RecentProject[];
 }
@@ -110,6 +122,7 @@ const itemVariants = {
 export default function DashboardOverviewClient({
   role,
   userName,
+  companySetting,
   stats,
   recentProjects,
 }: Props) {
@@ -214,6 +227,18 @@ export default function DashboardOverviewClient({
             <ArrowUpRight size={14} style={{ transform: isRtl ? 'scaleX(-1)' : 'none' }} />
           </Link>
         </div>
+      </motion.div>
+
+      {/* Company Net Value (Bank Account Balance) Treasury Banner */}
+      <motion.div variants={itemVariants}>
+        <CompanyNetValueCard
+          initialValue={companySetting?.companyNetValue ?? stats.companyNetValue ?? 0}
+          initialNotes={companySetting?.notes}
+          lastUpdated={companySetting?.updatedAt}
+          updatedBy={companySetting?.updatedBy}
+          canEdit={role === 'ADMIN'}
+          variant="banner"
+        />
       </motion.div>
 
       {/* Stat Cards Grid — Styled like Website Metrics */}

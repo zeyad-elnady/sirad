@@ -309,3 +309,15 @@ model AuditLog {
 
   @@map("audit_logs")
 }
+
+model CompanySetting {
+  id              String   @id @default("default")
+  companyNetValue Float    @default(0) // What the company has right now in the bank account
+  currency        String   @default("EGP")
+  notes           String?
+  updatedAt       DateTime @updatedAt
+  updatedBy       String?
+
+  @@map("company_settings")
+}
+

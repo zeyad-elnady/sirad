@@ -1,14 +1,30 @@
 import { getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { getCompanySetting } from '@/lib/company-value';
+import CompanyNetValueCard from '@/components/dashboard/CompanyNetValueCard';
 
 export default async function SettingsPage() {
   const session = await getSession();
   if (!session) redirect('/dashboard/login');
 
+  const companySetting = await getCompanySetting();
+
   return (
-    <div>
-      <h1 style={{ fontSize: '24px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', marginBottom: '8px' }}>Settings</h1>
-      <p style={{ fontSize: '13px', color: '#6B6B70', marginBottom: '28px' }}>Account and dashboard preferences</p>
+    <div className="space-y-8">
+      <div>
+        <h1 style={{ fontSize: '24px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif', marginBottom: '8px' }}>Settings</h1>
+        <p style={{ fontSize: '13px', color: '#6B6B70' }}>Account, treasury, and dashboard preferences</p>
+      </div>
+
+      {/* Company Net Value / Bank Account Treasury */}
+      <CompanyNetValueCard
+        initialValue={companySetting.companyNetValue}
+        initialNotes={companySetting.notes}
+        lastUpdated={companySetting.updatedAt}
+        updatedBy={companySetting.updatedBy}
+        canEdit={session.role === 'ADMIN'}
+        variant="banner"
+      />
 
       <div style={{ borderRadius: '14px', background: 'rgba(18,18,20,0.6)', border: '1px solid rgba(255,255,255,0.04)', padding: '24px' }}>
         <h2 style={{ fontSize: '16px', fontWeight: 600, fontFamily: '"Space Grotesk", sans-serif', marginBottom: '20px' }}>Account Information</h2>
