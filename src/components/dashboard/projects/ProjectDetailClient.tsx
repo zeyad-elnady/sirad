@@ -21,6 +21,9 @@ import {
   AlertTriangle,
   Pencil,
   Clock,
+  RefreshCw,
+  Globe,
+  Wrench,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import FormattedNumberInput from '@/components/ui/FormattedNumberInput';
@@ -333,6 +336,125 @@ export default function ProjectDetailClient({
   const [assignError, setAssignError] = useState('');
   const [removingId, setRemovingId] = useState<string | null>(null);
 
+  // Client Recurring Fees State & Handlers
+  const [showAddRecurringFeeModal, setShowAddRecurringFeeModal] = useState(false);
+  const [recurringFeeForm, setRecurringFeeForm] = useState({
+    feeType: 'HOSTING',
+    name: 'Hosting',
+    billingCycle: 'YEARLY',
+    amount: '',
+    payDay: '1',
+    renewalDate: '',
+    notes: '',
+  });
+  const [isSubmittingRecurringFee, setIsSubmittingRecurringFee] = useState(false);
+  const [recurringFeeError, setRecurringFeeError] = useState('');
+  const [deletingFeeId, setDeletingFeeId] = useState<string | null>(null);
+
+  function setRecurringFeePreset(type: string) {
+    if (type === 'HOSTING') {
+      setRecurringFeeForm({
+        feeType: 'HOSTING',
+        name: isRtl ? 'استضافة الموقع' : 'Web Hosting',
+        billingCycle: 'YEARLY',
+        amount: recurringFeeForm.amount,
+        payDay: '1',
+        renewalDate: '',
+        notes: '',
+      });
+    } else if (type === 'DOMAIN') {
+      setRecurringFeeForm({
+        feeType: 'DOMAIN',
+        name: isRtl ? 'تجديد الدومين' : 'Domain Renewal',
+        billingCycle: 'YEARLY',
+        amount: recurringFeeForm.amount,
+        payDay: '1',
+        renewalDate: '',
+        notes: '',
+      });
+    } else if (type === 'MAINTENANCE') {
+      setRecurringFeeForm({
+        feeType: 'MAINTENANCE',
+        name: isRtl ? 'صيانة ودعم فني' : 'Monthly Maintenance & Support',
+        billingCycle: 'MONTHLY',
+        amount: recurringFeeForm.amount,
+        payDay: '1',
+        renewalDate: '',
+        notes: '',
+      });
+    } else {
+      setRecurringFeeForm({
+        feeType: 'OTHER',
+        name: '',
+        billingCycle: 'MONTHLY',
+        amount: recurringFeeForm.amount,
+        payDay: '1',
+        renewalDate: '',
+        notes: '',
+      });
+    }
+  }
+
+  async function handleAddRecurringFee(e: React.FormEvent) {
+    e.preventDefault();
+    if (!recurringFeeForm.name.trim()) return;
+
+    setIsSubmittingRecurringFee(true);
+    setRecurringFeeError('');
+    try {
+      const res = await fetch(`/api/dashboard/projects/${p.id}/recurring-fees`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          feeType: recurringFeeForm.feeType,
+          name: recurringFeeForm.name.trim(),
+          billingCycle: recurringFeeForm.billingCycle,
+          amount: Number(recurringFeeForm.amount) || 0,
+          payDay: recurringFeeForm.billingCycle === 'MONTHLY' ? (Number(recurringFeeForm.payDay) || 1) : null,
+          renewalDate: recurringFeeForm.billingCycle === 'YEARLY' && recurringFeeForm.renewalDate ? recurringFeeForm.renewalDate : null,
+          notes: recurringFeeForm.notes.trim() || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setRecurringFeeError(data.error || 'Failed to add recurring fee');
+        return;
+      }
+      setShowAddRecurringFeeModal(false);
+      setRecurringFeeForm({
+        feeType: 'HOSTING',
+        name: 'Hosting',
+        billingCycle: 'YEARLY',
+        amount: '',
+        payDay: '1',
+        renewalDate: '',
+        notes: '',
+      });
+      router.refresh();
+    } catch {
+      setRecurringFeeError('Something went wrong. Please try again.');
+    } finally {
+      setIsSubmittingRecurringFee(false);
+    }
+  }
+
+  async function handleDeleteRecurringFee(feeId: string, feeName: string) {
+    if (!confirm(`Are you sure you want to remove the recurring fee "${feeName}"?`)) return;
+    setDeletingFeeId(feeId);
+    try {
+      const res = await fetch(`/api/dashboard/projects/${p.id}/recurring-fees?feeId=${feeId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        router.refresh();
+      }
+    } catch {
+      // ignore
+    } finally {
+      setDeletingFeeId(null);
+    }
+  }
+
   async function handleAssignEmployee(e: React.FormEvent) {
     e.preventDefault();
     if (!assignForm.employeeId || !assignForm.assignedRole) return;
@@ -400,6 +522,15 @@ export default function ProjectDetailClient({
     }, 0) ?? (profit?.recurringExpenseCosts ?? 0);
 
   const productionCosts = Number(p.productionDetail?.rentalCost) || (profit?.productionCosts ?? 0);
+
+  // Client Recurring Fees Metrics
+  const clientRecurringFeesList = (p.clientRecurringFees as any[]) || [];
+  const totalMonthlyClientFees = clientRecurringFeesList
+    .filter((f: any) => f.billingCycle === 'MONTHLY')
+    .reduce((sum: number, f: any) => sum + (Number(f.amount) || 0), 0);
+  const totalYearlyClientFees = clientRecurringFeesList
+    .filter((f: any) => f.billingCycle === 'YEARLY')
+    .reduce((sum: number, f: any) => sum + (Number(f.amount) || 0), 0);
 
   const totalCosts = totalEmployeesCost + recurringCosts + productionCosts;
   const grossProfit = Number(p.totalAmount || 0) - totalCosts;
@@ -1379,6 +1510,280 @@ export default function ProjectDetailClient({
         </div>
       )}
 
+      {/* Client Recurring Fees (Hosting, Domain, Maintenance) */}
+      <div style={cardStyle}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <h3 style={{ ...sectionTitle, marginBottom: '4px' }}>
+              <RefreshCw size={16} /> {isRtl ? 'الرسوم الدورية للعميل (استضافة، دومين، صيانة)' : 'Client Recurring Fees (Hosting, Domain, Maintenance)'}
+            </h3>
+            <p style={{ fontSize: '12px', color: '#8E8E93', margin: 0 }}>
+              {isRtl
+                ? 'المبالغ الشهرية أو السنوية التي يدفعها العميل للشركة لتغطية الاستضافة، حجز النطاق أو الصيانة المستمرة'
+                : 'Monthly or yearly fees paid by the client for domain renewal, web hosting, or continuous maintenance.'}
+            </p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {clientRecurringFeesList.length > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {totalMonthlyClientFees > 0 && (
+                  <span style={{ fontSize: '11px', fontWeight: 600, padding: '4px 10px', borderRadius: '8px', background: 'rgba(59,130,246,0.12)', color: '#60A5FA', border: '1px solid rgba(59,130,246,0.25)' }}>
+                    +{formatCurrency(totalMonthlyClientFees)} / {isRtl ? 'شهر' : 'mo'}
+                  </span>
+                )}
+                {totalYearlyClientFees > 0 && (
+                  <span style={{ fontSize: '11px', fontWeight: 600, padding: '4px 10px', borderRadius: '8px', background: 'rgba(182,255,51,0.12)', color: '#B6FF33', border: '1px solid rgba(182,255,51,0.25)' }}>
+                    +{formatCurrency(totalYearlyClientFees)} / {isRtl ? 'سنة' : 'yr'}
+                  </span>
+                )}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setRecurringFeePreset('HOSTING');
+                setShowAddRecurringFeeModal(true);
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 14px',
+                borderRadius: '8px',
+                background: 'rgba(182,255,51,0.1)',
+                border: '1px solid rgba(182,255,51,0.3)',
+                color: accentColor,
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              <Plus size={14} />
+              {isRtl ? 'إضافة رسوم دورية' : 'Add Recurring Fee'}
+            </button>
+          </div>
+        </div>
+
+        {clientRecurringFeesList.length === 0 ? (
+          <div
+            style={{
+              padding: '24px 20px',
+              textAlign: 'center',
+              borderRadius: '10px',
+              background: 'rgba(255,255,255,0.015)',
+              border: '1px dashed rgba(255,255,255,0.08)',
+            }}
+          >
+            <p style={{ fontSize: '13px', color: '#8E8E93', margin: '0 0 12px 0' }}>
+              {isRtl
+                ? 'لا توجد رسوم دورية مسجلة لهذا المشروع بعد (دومين، استضافة، صيانة).'
+                : 'No client recurring fees recorded for this project yet.'}
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setRecurringFeePreset('HOSTING');
+                  setShowAddRecurringFeeModal(true);
+                }}
+                style={{
+                  fontSize: '12px',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  background: 'rgba(59,130,246,0.1)',
+                  border: '1px solid rgba(59,130,246,0.25)',
+                  color: '#60A5FA',
+                  cursor: 'pointer',
+                }}
+              >
+                + {isRtl ? 'استضافة' : 'Hosting'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setRecurringFeePreset('DOMAIN');
+                  setShowAddRecurringFeeModal(true);
+                }}
+                style={{
+                  fontSize: '12px',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  background: 'rgba(168,85,247,0.1)',
+                  border: '1px solid rgba(168,85,247,0.25)',
+                  color: '#C084FC',
+                  cursor: 'pointer',
+                }}
+              >
+                + {isRtl ? 'دومين' : 'Domain'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setRecurringFeePreset('MAINTENANCE');
+                  setShowAddRecurringFeeModal(true);
+                }}
+                style={{
+                  fontSize: '12px',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  background: 'rgba(245,158,11,0.1)',
+                  border: '1px solid rgba(245,158,11,0.25)',
+                  color: '#FBBF24',
+                  cursor: 'pointer',
+                }}
+              >
+                + {isRtl ? 'صيانة ودعم' : 'Maintenance'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  {[
+                    isRtl ? 'النوع' : 'Type',
+                    isRtl ? 'الوصف / البند' : 'Fee Item',
+                    isRtl ? 'دورية الدفع' : 'Billing Cycle',
+                    isRtl ? 'تاريخ التجديد / يوم الدفع' : 'Pay Day / Renewal',
+                    isRtl ? 'المبلغ' : 'Amount',
+                    isRtl ? 'ملاحظات' : 'Notes',
+                    isRtl ? 'إجراءات' : 'Actions',
+                  ].map((h, i) => (
+                    <th
+                      key={i}
+                      style={{
+                        padding: '10px 14px',
+                        fontSize: '10px',
+                        fontWeight: 600,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.1em',
+                        color: '#6B6B70',
+                        textAlign: isRtl ? 'right' : 'left',
+                        borderBottom: '1px solid rgba(255,255,255,0.04)',
+                      }}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {clientRecurringFeesList.map((fee: any) => {
+                  const isMonthly = fee.billingCycle === 'MONTHLY';
+                  return (
+                    <tr key={fee.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                      <td style={{ padding: '12px 14px' }}>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            background:
+                              fee.feeType === 'HOSTING'
+                                ? 'rgba(59,130,246,0.12)'
+                                : fee.feeType === 'DOMAIN'
+                                ? 'rgba(168,85,247,0.12)'
+                                : fee.feeType === 'MAINTENANCE'
+                                ? 'rgba(245,158,11,0.12)'
+                                : 'rgba(255,255,255,0.06)',
+                            color:
+                              fee.feeType === 'HOSTING'
+                                ? '#60A5FA'
+                                : fee.feeType === 'DOMAIN'
+                                ? '#C084FC'
+                                : fee.feeType === 'MAINTENANCE'
+                                ? '#FBBF24'
+                                : '#E5E7EB',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          {fee.feeType === 'HOSTING' && '🌐'}
+                          {fee.feeType === 'DOMAIN' && '🔗'}
+                          {fee.feeType === 'MAINTENANCE' && '🛠️'}
+                          {fee.feeType === 'OTHER' && '📋'}
+                          {fee.feeType}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px 14px', fontSize: '13px', fontWeight: 600, color: '#FFFFFF' }}>
+                        {fee.name}
+                      </td>
+                      <td style={{ padding: '12px 14px' }}>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            background: isMonthly ? 'rgba(59,130,246,0.1)' : 'rgba(182,255,51,0.1)',
+                            color: isMonthly ? '#60A5FA' : '#B6FF33',
+                          }}
+                        >
+                          {isMonthly ? (isRtl ? 'شهري' : 'Monthly') : (isRtl ? 'سنوي' : 'Yearly')}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px 14px', fontSize: '12px', color: '#9CA3AF' }}>
+                        {isMonthly ? (
+                          <span>{isRtl ? `يوم ${fee.payDay || 1} من كل شهر` : `Day ${fee.payDay || 1} of month`}</span>
+                        ) : (
+                          <span>
+                            {fee.renewalDate
+                              ? format(new Date(fee.renewalDate), 'yyyy-MM-dd')
+                              : (isRtl ? 'سنوياً' : 'Annual')}
+                          </span>
+                        )}
+                      </td>
+                      <td
+                        style={{
+                          padding: '12px 14px',
+                          fontSize: '14px',
+                          fontWeight: 700,
+                          fontFamily: '"Space Grotesk", sans-serif',
+                          color: '#22C55E',
+                        }}
+                      >
+                        +{formatCurrency(fee.amount)}
+                      </td>
+                      <td style={{ padding: '12px 14px', fontSize: '12px', color: '#6B6B70' }}>
+                        {fee.notes || '—'}
+                      </td>
+                      <td style={{ padding: '12px 14px' }}>
+                        <button
+                          type="button"
+                          title="Remove fee"
+                          disabled={deletingFeeId === fee.id}
+                          onClick={() => handleDeleteRecurringFee(fee.id, fee.name)}
+                          style={{
+                            padding: '6px',
+                            borderRadius: '6px',
+                            border: '1px solid rgba(239,68,68,0.2)',
+                            background: 'rgba(239,68,68,0.05)',
+                            color: '#EF4444',
+                            cursor: deletingFeeId === fee.id ? 'not-allowed' : 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          {deletingFeeId === fee.id ? (
+                            <Loader2 size={13} className="animate-spin" />
+                          ) : (
+                            <Trash2 size={13} />
+                          )}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
       {/* Edit Project Modal */}
       <AnimatePresence>
         {showEditModal && (
@@ -2334,6 +2739,346 @@ export default function ProjectDetailClient({
                 );
               })()}
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Add Client Recurring Fee Modal */}
+      <AnimatePresence>
+        {showAddRecurringFeeModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.75)',
+              backdropFilter: 'blur(8px)',
+              zIndex: 100,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px',
+            }}
+            onClick={() => !isSubmittingRecurringFee && setShowAddRecurringFeeModal(false)}
+          >
+            <motion.form
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              onClick={(e) => e.stopPropagation()}
+              onSubmit={handleAddRecurringFee}
+              style={{
+                background: '#121214',
+                borderRadius: '16px',
+                padding: '28px',
+                width: '100%',
+                maxWidth: '520px',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                border: '1px solid rgba(255,255,255,0.08)',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '20px',
+                }}
+              >
+                <div>
+                  <h2
+                    style={{
+                      fontSize: '17px',
+                      fontWeight: 700,
+                      fontFamily: '"Space Grotesk", sans-serif',
+                      color: '#FFFFFF',
+                      margin: 0,
+                    }}
+                  >
+                    {isRtl ? 'إضافة رسوم دورية للعميل' : 'Add Client Recurring Fee'}
+                  </h2>
+                  <p style={{ fontSize: '12px', color: '#8E8E93', margin: '4px 0 0 0' }}>
+                    {isRtl ? 'استضافة، تجديد دومين، أو صيانة شهرية/سنوية' : 'Hosting, domain renewal, or maintenance retainer'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => !isSubmittingRecurringFee && setShowAddRecurringFeeModal(false)}
+                  style={{ background: 'none', border: 'none', color: '#6B6B70', cursor: 'pointer', padding: '4px' }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {recurringFeeError && (
+                <div
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                    color: '#EF4444',
+                    fontSize: '13px',
+                    marginBottom: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <AlertTriangle size={16} />
+                  {recurringFeeError}
+                </div>
+              )}
+
+              {/* Preset buttons */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
+                  {isRtl ? 'نوع الرسوم السريع' : 'Quick Preset'}
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                  {[
+                    { type: 'HOSTING', label: isRtl ? '🌐 استضافة' : '🌐 Hosting' },
+                    { type: 'DOMAIN', label: isRtl ? '🔗 دومين' : '🔗 Domain' },
+                    { type: 'MAINTENANCE', label: isRtl ? '🛠️ صيانة' : '🛠️ Maintenance' },
+                    { type: 'OTHER', label: isRtl ? '⚡ أخرى' : '⚡ Custom' },
+                  ].map((pItem) => {
+                    const isSelected = recurringFeeForm.feeType === pItem.type;
+                    return (
+                      <button
+                        key={pItem.type}
+                        type="button"
+                        onClick={() => setRecurringFeePreset(pItem.type)}
+                        style={{
+                          padding: '8px 4px',
+                          borderRadius: '8px',
+                          border: isSelected ? `1px solid ${accentColor}` : '1px solid rgba(255,255,255,0.08)',
+                          background: isSelected ? 'rgba(182,255,51,0.12)' : 'rgba(255,255,255,0.03)',
+                          color: isSelected ? '#FFFFFF' : '#8E8E93',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {pItem.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Fee Name */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                  {isRtl ? 'اسم الرسوم / البند *' : 'Fee Description / Name *'}
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder={isRtl ? 'مثال: استضافة ووردبريس، نطاق .com، صيانة ودعم' : 'e.g., WordPress Cloud Hosting, .com Domain'}
+                  value={recurringFeeForm.name}
+                  onChange={(e) => setRecurringFeeForm({ ...recurringFeeForm, name: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    color: '#FFFFFF',
+                    fontSize: '13px',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              {/* Billing Cycle */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                  {isRtl ? 'دورية الدفع *' : 'Billing Cycle *'}
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setRecurringFeeForm({ ...recurringFeeForm, billingCycle: 'MONTHLY' })}
+                    style={{
+                      padding: '10px',
+                      borderRadius: '8px',
+                      border: recurringFeeForm.billingCycle === 'MONTHLY' ? '1px solid #3B82F6' : '1px solid rgba(255,255,255,0.08)',
+                      background: recurringFeeForm.billingCycle === 'MONTHLY' ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.03)',
+                      color: recurringFeeForm.billingCycle === 'MONTHLY' ? '#60A5FA' : '#8E8E93',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    📅 {isRtl ? 'شهرياً (Monthly)' : 'Monthly'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRecurringFeeForm({ ...recurringFeeForm, billingCycle: 'YEARLY' })}
+                    style={{
+                      padding: '10px',
+                      borderRadius: '8px',
+                      border: recurringFeeForm.billingCycle === 'YEARLY' ? `1px solid ${accentColor}` : '1px solid rgba(255,255,255,0.08)',
+                      background: recurringFeeForm.billingCycle === 'YEARLY' ? 'rgba(182,255,51,0.15)' : 'rgba(255,255,255,0.03)',
+                      color: recurringFeeForm.billingCycle === 'YEARLY' ? '#FFFFFF' : '#8E8E93',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    🗓️ {isRtl ? 'سنوياً (Yearly)' : 'Yearly'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Amount and Pay Day / Renewal Date */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                    {isRtl ? 'المبلغ (ج.م) *' : 'Amount (EGP) *'}
+                  </label>
+                    <FormattedNumberInput
+                      placeholder="0"
+                      value={recurringFeeForm.amount}
+                      onChangeValue={(val) => setRecurringFeeForm({ ...recurringFeeForm, amount: val })}
+                      style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: '8px',
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      color: '#FFFFFF',
+                      fontSize: '13px',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+
+                {recurringFeeForm.billingCycle === 'MONTHLY' ? (
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                      {isRtl ? 'يوم الدفع من الشهر (1-31)' : 'Monthly Pay Day (1-31)'}
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={31}
+                      value={recurringFeeForm.payDay}
+                      onChange={(e) => setRecurringFeeForm({ ...recurringFeeForm, payDay: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        borderRadius: '8px',
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        color: '#FFFFFF',
+                        fontSize: '13px',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                      {isRtl ? 'تاريخ التجديد السنوي' : 'Annual Renewal Date'}
+                    </label>
+                    <input
+                      type="date"
+                      value={recurringFeeForm.renewalDate}
+                      onChange={(e) => setRecurringFeeForm({ ...recurringFeeForm, renewalDate: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        borderRadius: '8px',
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        color: '#FFFFFF',
+                        fontSize: '13px',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Notes */}
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                  {isRtl ? 'ملاحظات (اختياري)' : 'Notes (Optional)'}
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder={isRtl ? 'أي تفاصيل عن خطة الاستضافة أو مزود الخدمة...' : 'Details like provider, specs, login ref...'}
+                  value={recurringFeeForm.notes}
+                  onChange={(e) => setRecurringFeeForm({ ...recurringFeeForm, notes: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    color: '#FFFFFF',
+                    fontSize: '13px',
+                    outline: 'none',
+                    resize: 'vertical',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              {/* Submit / Cancel Buttons */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  type="button"
+                  disabled={isSubmittingRecurringFee}
+                  onClick={() => setShowAddRecurringFeeModal(false)}
+                  style={{
+                    padding: '10px 16px',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    background: 'rgba(255,255,255,0.03)',
+                    color: '#E8E4E0',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {isRtl ? 'إلغاء' : 'Cancel'}
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingRecurringFee}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 20px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: accentColor,
+                    color: '#000000',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: isSubmittingRecurringFee ? 'not-allowed' : 'pointer',
+                    opacity: isSubmittingRecurringFee ? 0.7 : 1,
+                  }}
+                >
+                  {isSubmittingRecurringFee && <Loader2 size={15} className="animate-spin" />}
+                  {isSubmittingRecurringFee
+                    ? (isRtl ? 'جاري الحفظ...' : 'Saving...')
+                    : (isRtl ? 'حفظ الرسوم' : 'Save Recurring Fee')}
+                </button>
+              </div>
+            </motion.form>
           </motion.div>
         )}
       </AnimatePresence>

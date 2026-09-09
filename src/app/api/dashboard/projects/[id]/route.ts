@@ -19,6 +19,7 @@ export async function GET(
         contract: { include: { installments: { orderBy: { dueDate: 'asc' } } } },
         employees: { include: { employee: true } },
         recurringExpenses: { orderBy: { createdAt: 'desc' } },
+        clientRecurringFees: { orderBy: { createdAt: 'desc' } },
         productionDetail: true,
         createdBy: { select: { name: true, email: true } },
       },

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { getSession, getDepartmentForRole } from '@/lib/auth';
+import { getSession } from '@/lib/auth';
 import { projectSchema } from '@/lib/validations';
+import { ensureClientRecurringFeesTable } from '@/lib/client-recurring-fees';
 
 export async function GET(request: Request) {
   try {
@@ -44,6 +45,8 @@ export async function POST(request: Request) {
     const session = await getSession();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+    await ensureClientRecurringFeesTable();
+
     const body = await request.json();
     const parsed = projectSchema.safeParse(body);
     if (!parsed.success) {
@@ -62,6 +65,10 @@ export async function POST(request: Request) {
 
     const assignedEmployees = Array.isArray(body.assignedEmployees)
       ? body.assignedEmployees.filter((ae: any) => ae.employeeId && ae.assignedRole)
+      : [];
+
+    const clientRecurringFees = Array.isArray(body.clientRecurringFees)
+      ? body.clientRecurringFees.filter((rf: any) => rf && rf.name)
       : [];
 
     const project = await db.project.create({
@@ -93,8 +100,29 @@ export async function POST(request: Request) {
               },
             }
           : {}),
+        ...(clientRecurringFees.length > 0
+          ? {
+              clientRecurringFees: {
+                create: clientRecurringFees.map((rf: any) => ({
+                  feeType: rf.feeType || 'OTHER',
+                  name: rf.name,
+                  amount: parseFloat(rf.amount) || 0,
+                  billingCycle: rf.billingCycle === 'YEARLY' ? 'YEARLY' : 'MONTHLY',
+                  payDay: rf.payDay ? parseInt(rf.payDay, 10) : null,
+                  renewalDate: rf.renewalDate ? new Date(rf.renewalDate) : null,
+                  notes: rf.notes || null,
+                  clientId: data.clientId,
+                })),
+              },
+            }
+          : {}),
       },
-      include: { client: true, salesRep: true, employees: { include: { employee: true } } },
+      include: {
+        client: true,
+        salesRep: true,
+        employees: { include: { employee: true } },
+        clientRecurringFees: true,
+      },
     });
 
     // Log audit

@@ -22,6 +22,7 @@ export default async function ProjectDetailPage({
       contract: { include: { installments: { orderBy: { dueDate: 'asc' } } } },
       employees: { include: { employee: true } },
       recurringExpenses: { orderBy: { createdAt: 'desc' } },
+      clientRecurringFees: { orderBy: { createdAt: 'desc' } },
       productionDetail: true,
       createdBy: { select: { name: true } },
     },
@@ -50,7 +51,9 @@ export default async function ProjectDetailPage({
   let profit = null;
   try {
     profit = await calculateProjectProfit(id);
-  } catch { /* if no data yet */ }
+  } catch {
+    // Profit calculation may fail if project data is incomplete
+  }
 
   // Serialize dates for client component
   const serialized = {
@@ -92,6 +95,12 @@ export default async function ProjectDetailPage({
       endDate: e.endDate?.toISOString() || null,
       createdAt: e.createdAt.toISOString(),
       updatedAt: e.updatedAt.toISOString(),
+    })),
+    clientRecurringFees: (project.clientRecurringFees || []).map((rf) => ({
+      ...rf,
+      renewalDate: rf.renewalDate?.toISOString() || null,
+      createdAt: rf.createdAt.toISOString(),
+      updatedAt: rf.updatedAt.toISOString(),
     })),
     productionDetail: project.productionDetail
       ? {

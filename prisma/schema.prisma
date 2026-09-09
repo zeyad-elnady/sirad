@@ -109,6 +109,7 @@ model Client {
   updatedAt DateTime @updatedAt
 
   projects Project[]
+  recurringFees ClientRecurringFee[]
 
   @@map("clients")
 }
@@ -187,6 +188,7 @@ model Project {
   recurringExpenses RecurringExpense[]
   productionDetail  ProductionDetail?
   employeeTransactions EmployeeTransaction[]
+  clientRecurringFees ClientRecurringFee[]
 
   @@map("projects")
 }
@@ -339,5 +341,28 @@ model CompanyExpense {
 
   @@map("company_expenses")
 }
+
+model ClientRecurringFee {
+  id           String    @id @default(cuid())
+  feeType      String    @default("OTHER") // "HOSTING", "DOMAIN", "MAINTENANCE", "RETAINER", "OTHER"
+  name         String    // e.g. "Cloud Hosting", "Domain (.com)", "Monthly Maintenance & Support"
+  amount       Float     @default(0)
+  billingCycle String    @default("MONTHLY") // "MONTHLY" or "YEARLY"
+  payDay       Int?      // 1-31: Day of month for monthly fees
+  renewalDate  DateTime? // Next renewal date (for yearly or monthly)
+  isActive     Boolean   @default(true)
+  notes        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  projectId    String
+  project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  clientId     String?
+  client       Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  @@map("client_recurring_fees")
+}
+
 
 

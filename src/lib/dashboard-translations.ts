@@ -56,6 +56,14 @@ export const dashboardTranslations = {
     totalAmount: 'Total Amount',
     amount: 'Amount',
     egp: 'EGP',
+    clientRecurringFees: 'Client Recurring Fees',
+    clientRecurringFeesSubtitle: 'Monthly or yearly fees for hosting, domain, maintenance, etc.',
+    hasClientRecurringFees: 'This client pays recurring fees (Hosting, Domain, Maintenance)',
+    hosting: 'Hosting',
+    domain: 'Domain',
+    maintenance: 'Maintenance',
+    billingCycle: 'Billing Cycle',
+    yearly: 'Yearly',
 
     // Project Details
     projectDetails: 'Project Details',
@@ -189,9 +197,17 @@ export const dashboardTranslations = {
     salaries: 'رواتب الموظفين',
     netProfit: 'صافي الأرباح',
     profitMargin: 'هامش الربح',
-    totalAmount: 'إجمالي المبلغ',
+    totalAmount: 'المبلغ الإجمالي',
     amount: 'المبلغ',
     egp: 'ج.م',
+    clientRecurringFees: 'رسوم العميل المتكررة',
+    clientRecurringFeesSubtitle: 'رسوم دورية شهرية أو سنوية للاستضافة، الدومين، الصيانة، إلخ.',
+    hasClientRecurringFees: 'هذا العميل يدفع رسوماً متكررة (استضافة / دومين / صيانة)',
+    hosting: 'استضافة',
+    domain: 'دومين',
+    maintenance: 'صيانة',
+    billingCycle: 'دورية الفاتورة',
+    yearly: 'سنوياً',
 
     // Project Details
     projectDetails: 'تفاصيل المشروع',
