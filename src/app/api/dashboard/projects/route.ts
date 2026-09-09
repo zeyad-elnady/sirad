@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     const session = await getSession();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const department = getDepartmentForRole(session.role);
+    const department = session.department;
     const url = new URL(request.url);
     const status = url.searchParams.get('status');
     const search = url.searchParams.get('search');
@@ -54,10 +54,9 @@ export async function POST(request: Request) {
     }
 
     const data = parsed.data;
-    const department = getDepartmentForRole(session.role);
 
-    // Enforce department matches
-    if (data.department !== department) {
+    // Enforce department matches for non-admin users
+    if (session.role !== 'ADMIN' && data.department !== session.department) {
       return NextResponse.json({ error: 'Cannot create project in other department' }, { status: 403 });
     }
 

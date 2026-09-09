@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { UserRole } from '@prisma/client';
 import { Plus, Edit2, Trash2, X, Handshake } from 'lucide-react';
+import { useDashboardDepartment } from '@/context/DashboardDepartmentContext';
 
 interface SalesRepItem {
   id: string;
@@ -21,7 +22,9 @@ interface Props {
 
 export default function SalesRepsClient({ role, salesReps }: Props) {
   const router = useRouter();
-  const accentColor = role === 'ZEYAD_TECH' ? '#B6FF33' : '#7C3AED';
+  const { department } = useDashboardDepartment();
+  const isTech = role === 'ADMIN' ? department === 'TECH' : role === 'ZEYAD_TECH';
+  const accentColor = isTech ? '#B6FF33' : '#7C3AED';
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: '', phone: '', email: '' });

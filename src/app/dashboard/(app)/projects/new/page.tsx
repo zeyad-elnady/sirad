@@ -7,7 +7,7 @@ export default async function NewProjectPage() {
   const session = await getSession();
   if (!session) redirect('/dashboard/login');
 
-  const department = getDepartmentForRole(session.role);
+  const department = session.department;
 
   // Fetch clients, sales reps, and employees for the form dropdowns
   const [clients, salesReps, employees] = await Promise.all([

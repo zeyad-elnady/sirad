@@ -1,4 +1,4 @@
-import { getSession } from '@/lib/auth';
+import { getSession, isMarketingLead } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { redirect } from 'next/navigation';
 import ProductionClient from '@/components/dashboard/marketing/ProductionClient';
@@ -6,7 +6,7 @@ import ProductionClient from '@/components/dashboard/marketing/ProductionClient'
 export default async function ProductionPage() {
   const session = await getSession();
   if (!session) redirect('/dashboard/login');
-  if (session.role !== 'YEHIA_MARKETING') redirect('/dashboard');
+  if (!isMarketingLead(session.role)) redirect('/dashboard');
 
   const [productionProjects, marketingProjects] = await Promise.all([
     db.project.findMany({

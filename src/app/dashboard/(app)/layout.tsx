@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { getSession } from '@/lib/auth';
 import DashboardShell from '@/components/dashboard/layout/DashboardShell';
 import { DashboardLanguageProvider } from '@/context/DashboardLanguageContext';
+import { DashboardDepartmentProvider } from '@/context/DashboardDepartmentContext';
 import '@/app/globals.css';
 import { Inter, Space_Grotesk, Cairo } from 'next/font/google';
 
@@ -60,9 +61,14 @@ export default async function AuthenticatedDashboardLayout({
         suppressHydrationWarning
       >
         <DashboardLanguageProvider>
-          <DashboardShell role={session.role} userName={session.name}>
-            {children}
-          </DashboardShell>
+          <DashboardDepartmentProvider
+            initialDepartment={session.department}
+            canSwitch={session.canSwitchDepartment}
+          >
+            <DashboardShell role={session.role} userName={session.name}>
+              {children}
+            </DashboardShell>
+          </DashboardDepartmentProvider>
         </DashboardLanguageProvider>
       </body>
     </html>

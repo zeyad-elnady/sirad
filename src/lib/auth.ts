@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import type { UserRole } from '@prisma/client';
 
 const SESSION_COOKIE = 'sirad-session';
+export const DEPARTMENT_COOKIE = 'sirad_department';
 const SESSION_DURATION = 60 * 60 * 24 * 7; // 7 days in seconds
 
 function getJwtSecret() {
@@ -29,7 +30,34 @@ export interface SessionPayload {
   name: string;
   email: string;
   role: UserRole;
+  department: 'TECH' | 'MARKETING';
+  canSwitchDepartment: boolean;
   expiresAt: Date;
+}
+
+// ─── Role Helpers ───
+
+export function isAdmin(role: UserRole): boolean {
+  return role === 'ADMIN';
+}
+
+export function isTechLead(role: UserRole): boolean {
+  return role === 'ZEYAD_TECH' || role === 'ADMIN';
+}
+
+export function isMarketingLead(role: UserRole): boolean {
+  return role === 'YEHIA_MARKETING' || role === 'ADMIN';
+}
+
+export function getActiveDepartment(role: UserRole, departmentCookie?: string | null): 'TECH' | 'MARKETING' {
+  if (role === 'ADMIN') {
+    return departmentCookie === 'MARKETING' ? 'MARKETING' : 'TECH';
+  }
+  return role === 'ZEYAD_TECH' ? 'TECH' : 'MARKETING';
+}
+
+export function getDepartmentForRole(role: UserRole, cookieDept?: string | null): 'TECH' | 'MARKETING' {
+  return getActiveDepartment(role, cookieDept);
 }
 
 // ─── Session Management ───
@@ -39,6 +67,7 @@ export async function createSession(user: {
   name: string;
   email: string;
   role: UserRole;
+  department?: 'TECH' | 'MARKETING';
 }): Promise<void> {
   const expiresAt = new Date(Date.now() + SESSION_DURATION * 1000);
 
@@ -61,6 +90,16 @@ export async function createSession(user: {
     path: '/',
     expires: expiresAt,
   });
+
+  if (user.department) {
+    cookieStore.set(DEPARTMENT_COOKIE, user.department, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30,
+    });
+  }
 }
 
 export async function getSession(): Promise<SessionPayload | null> {
@@ -70,12 +109,17 @@ export async function getSession(): Promise<SessionPayload | null> {
     if (!token) return null;
 
     const { payload } = await jwtVerify(token, getJwtSecret());
+    const role = payload.role as UserRole;
+    const deptCookie = cookieStore.get(DEPARTMENT_COOKIE)?.value;
+    const department = getActiveDepartment(role, deptCookie);
 
     return {
       userId: payload.userId as string,
       name: payload.name as string,
       email: payload.email as string,
-      role: payload.role as UserRole,
+      role,
+      department,
+      canSwitchDepartment: role === 'ADMIN',
       expiresAt: new Date((payload.exp as number) * 1000),
     };
   } catch {
@@ -86,18 +130,5 @@ export async function getSession(): Promise<SessionPayload | null> {
 export async function destroySession(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE);
-}
-
-// ─── Role Helpers ───
-
-export function isTechLead(role: UserRole): boolean {
-  return role === 'ZEYAD_TECH';
-}
-
-export function isMarketingLead(role: UserRole): boolean {
-  return role === 'YEHIA_MARKETING';
-}
-
-export function getDepartmentForRole(role: UserRole): 'TECH' | 'MARKETING' {
-  return role === 'ZEYAD_TECH' ? 'TECH' : 'MARKETING';
+  cookieStore.delete(DEPARTMENT_COOKIE);
 }

@@ -8,6 +8,7 @@ import type { UserRole } from '@prisma/client';
 import { Plus, Search, Filter, FolderKanban, Pencil, Calendar, ArrowUpRight, Trash2, AlertTriangle, Loader2, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { useDashboardLang } from '@/context/DashboardLanguageContext';
+import { useDashboardDepartment } from '@/context/DashboardDepartmentContext';
 
 interface ProjectItem {
   id: string;
@@ -49,7 +50,9 @@ export default function ProjectsListClient({ role, projects }: Props) {
   const { t, isRtl, formatCurrency } = useDashboardLang();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
-  const accentColor = role === 'ZEYAD_TECH' ? '#B6FF33' : '#7C3AED';
+  const { department } = useDashboardDepartment();
+  const isTech = role === 'ADMIN' ? department === 'TECH' : role === 'ZEYAD_TECH';
+  const accentColor = isTech ? '#B6FF33' : '#7C3AED';
 
   const [projectList, setProjectList] = useState<ProjectItem[]>(projects);
   useEffect(() => {

@@ -7,6 +7,7 @@ import type { UserRole } from '@prisma/client';
 import { Plus, Search, UserCheck, X, Briefcase, Clock } from 'lucide-react';
 import FormattedNumberInput from '@/components/ui/FormattedNumberInput';
 import { useDashboardLang } from '@/context/DashboardLanguageContext';
+import { useDashboardDepartment } from '@/context/DashboardDepartmentContext';
 
 interface EmployeeItem {
   id: string;
@@ -31,12 +32,14 @@ interface Props {
 export default function EmployeesPageClient({ role, employees }: Props) {
   const router = useRouter();
   const { t, isRtl } = useDashboardLang();
-  const accentColor = role === 'ZEYAD_TECH' ? '#B6FF33' : '#7C3AED';
+  const { department } = useDashboardDepartment();
+  const isTech = role === 'ADMIN' ? department === 'TECH' : role === 'ZEYAD_TECH';
+  const accentColor = isTech ? '#B6FF33' : '#7C3AED';
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({
-    name: '', email: '', phone: '', role: '', department: role === 'ZEYAD_TECH' ? 'TECH' : 'MARKETING',
+    name: '', email: '', phone: '', role: '', department: role === 'ADMIN' ? department : (role === 'ZEYAD_TECH' ? 'TECH' : 'MARKETING'),
     paymentModel: 'PER_TASK', isFreelancer: false, monthlyRate: '', hourlyRate: '', bankDetails: '', notes: '',
   });
 
@@ -106,7 +109,7 @@ export default function EmployeesPageClient({ role, employees }: Props) {
                 <input style={inputStyle} placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
                 <input style={inputStyle} placeholder="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
                 <input style={inputStyle} placeholder="Role (e.g., Developer)" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} required />
-                <select style={{ ...inputStyle, cursor: 'pointer' }} value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })}>
+                <select style={{ ...inputStyle, cursor: 'pointer' }} value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value as 'TECH' | 'MARKETING' })}>
                   <option value="TECH" style={{ background: '#121214' }}>Tech</option>
                   <option value="MARKETING" style={{ background: '#121214' }}>Marketing</option>
                 </select>

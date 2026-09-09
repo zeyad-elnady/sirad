@@ -7,7 +7,7 @@ export async function GET() {
     const session = await getSession();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const department = getDepartmentForRole(session.role);
+    const department = session.department;
     const overview = await getFinanceOverview(department);
 
     return NextResponse.json({ overview });

@@ -13,6 +13,7 @@ datasource db {
 // ─── Enums ───
 
 enum UserRole {
+  ADMIN
   ZEYAD_TECH
   YEHIA_MARKETING
 }

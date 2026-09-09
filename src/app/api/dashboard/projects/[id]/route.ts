@@ -26,8 +26,7 @@ export async function GET(
 
     if (!project) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    const department = getDepartmentForRole(session.role);
-    if (project.department !== department) {
+    if (session.role !== 'ADMIN' && project.department !== session.department) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
@@ -52,8 +51,7 @@ export async function PUT(
     const existing = await db.project.findUnique({ where: { id } });
     if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    const department = getDepartmentForRole(session.role);
-    if (existing.department !== department) {
+    if (session.role !== 'ADMIN' && existing.department !== session.department) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
@@ -117,8 +115,7 @@ export async function DELETE(
     const existing = await db.project.findUnique({ where: { id } });
     if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    const department = getDepartmentForRole(session.role);
-    if (existing.department !== department) {
+    if (session.role !== 'ADMIN' && existing.department !== session.department) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 

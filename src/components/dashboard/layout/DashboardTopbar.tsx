@@ -1,10 +1,11 @@
 'use client';
 
 import type { UserRole } from '@prisma/client';
-import { Search, Bell, ExternalLink, Globe } from 'lucide-react';
+import { Search, Bell, ExternalLink, Globe, Laptop, Clapperboard } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
 import { useDashboardLang } from '@/context/DashboardLanguageContext';
+import { useDashboardDepartment } from '@/context/DashboardDepartmentContext';
 
 interface TopbarProps {
   role: UserRole;
@@ -14,7 +15,9 @@ interface TopbarProps {
 export default function DashboardTopbar({ role, userName }: TopbarProps) {
   const [searchFocused, setSearchFocused] = useState(false);
   const { locale, toggleLocale, t } = useDashboardLang();
-  const isTech = role === 'ZEYAD_TECH';
+  const { department, canSwitch, isSwitching, switchDepartment } = useDashboardDepartment();
+
+  const isTech = role === 'ADMIN' ? department === 'TECH' : role === 'ZEYAD_TECH';
 
   return (
     <header className="h-[76px] sticky top-0 z-30 bg-[#0e0e0e]/80 backdrop-blur-2xl border-b border-white/[0.06] flex items-center justify-between px-6 md:px-8">
@@ -47,6 +50,40 @@ export default function DashboardTopbar({ role, userName }: TopbarProps) {
 
       {/* Right Controls */}
       <div className="flex items-center gap-3 md:gap-4">
+        {/* Department Switcher Capsule (shown for Admin) */}
+        {canSwitch && (
+          <div className="flex items-center p-1 rounded-full border border-white/[0.1] bg-[#141416]/90 shadow-[0_2px_12px_rgba(0,0,0,0.4)]">
+            <button
+              type="button"
+              onClick={() => switchDepartment('TECH')}
+              disabled={isSwitching}
+              title="Switch to Tech Department"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-headline font-bold transition-all duration-200 cursor-pointer ${
+                department === 'TECH'
+                  ? 'bg-[#B6FF33] text-[#121f00] shadow-[0_0_15px_rgba(182,255,51,0.35)]'
+                  : 'text-[#e5e2e1]/60 hover:text-white hover:bg-white/[0.05]'
+              } ${isSwitching ? 'opacity-70' : ''}`}
+            >
+              <Laptop size={13} />
+              <span>{t('tech')}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => switchDepartment('MARKETING')}
+              disabled={isSwitching}
+              title="Switch to Marketing Department"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-headline font-bold transition-all duration-200 cursor-pointer ${
+                department === 'MARKETING'
+                  ? 'bg-[#8B5CF6] text-white shadow-[0_0_15px_rgba(139,92,246,0.35)]'
+                  : 'text-[#e5e2e1]/60 hover:text-white hover:bg-white/[0.05]'
+              } ${isSwitching ? 'opacity-70' : ''}`}
+            >
+              <Clapperboard size={13} />
+              <span>{t('marketing')}</span>
+            </button>
+          </div>
+        )}
+
         {/* Language Switcher Pill */}
         <button
           type="button"
@@ -87,15 +124,27 @@ export default function DashboardTopbar({ role, userName }: TopbarProps) {
 
         {/* User Pill */}
         <div className="flex items-center gap-3 pl-2 pr-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.08]">
-          <div className="w-7 h-7 rounded-full bg-[#B6FF33] text-[#121f00] font-headline font-bold text-xs flex items-center justify-center shadow-[0_0_12px_rgba(182,255,51,0.3)]">
+          <div
+            className={`w-7 h-7 rounded-full ${
+              isTech
+                ? 'bg-[#B6FF33] text-[#121f00] shadow-[0_0_12px_rgba(182,255,51,0.3)]'
+                : 'bg-[#8B5CF6] text-white shadow-[0_0_12px_rgba(139,92,246,0.3)]'
+            } font-headline font-bold text-xs flex items-center justify-center transition-colors`}
+          >
             {userName[0]}
           </div>
           <div className="hidden sm:block">
             <div className="text-xs font-bold font-headline text-[#e5e2e1] leading-none">
               {userName}
             </div>
-            <div className="text-[9px] font-headline text-[#B6FF33] uppercase tracking-wider font-semibold mt-0.5">
-              {isTech ? t('techLead') : t('marketingLead')}
+            <div
+              className={`text-[9px] font-headline ${
+                isTech ? 'text-[#B6FF33]' : 'text-[#C4B5FD]'
+              } uppercase tracking-wider font-semibold mt-0.5`}
+            >
+              {role === 'ADMIN'
+                ? (isTech ? `${t('admin')} (${t('tech')})` : `${t('admin')} (${t('marketing')})`)
+                : (isTech ? t('techLead') : t('marketingLead'))}
             </div>
           </div>
         </div>

@@ -7,7 +7,7 @@ export default async function ProjectsPage() {
   const session = await getSession();
   if (!session) redirect('/dashboard/login');
 
-  const department = getDepartmentForRole(session.role);
+  const department = session.department;
 
   const projects = await db.project.findMany({
     where: { department },

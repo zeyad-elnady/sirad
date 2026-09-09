@@ -16,8 +16,7 @@ export async function POST(
     const project = await db.project.findUnique({ where: { id: projectId } });
     if (!project) return NextResponse.json({ error: 'Project not found' }, { status: 404 });
 
-    const department = getDepartmentForRole(session.role);
-    if (project.department !== department) {
+    if (session.role !== 'ADMIN' && project.department !== session.department) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
@@ -78,8 +77,7 @@ export async function DELETE(
     const project = await db.project.findUnique({ where: { id: projectId } });
     if (!project) return NextResponse.json({ error: 'Project not found' }, { status: 404 });
 
-    const department = getDepartmentForRole(session.role);
-    if (project.department !== department) {
+    if (session.role !== 'ADMIN' && project.department !== session.department) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 

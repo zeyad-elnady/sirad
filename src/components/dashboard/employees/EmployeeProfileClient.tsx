@@ -28,7 +28,8 @@ const txTypeColors: Record<string, string> = {
 
 export default function EmployeeProfileClient({ role, employee, balance, projects = [] }: Props) {
   const router = useRouter();
-  const accentColor = role === 'ZEYAD_TECH' ? '#B6FF33' : '#7C3AED';
+  const isTech = role === 'ADMIN' ? employee.department === 'TECH' : role === 'ZEYAD_TECH';
+  const accentColor = isTech ? '#B6FF33' : '#7C3AED';
   const [showTxForm, setShowTxForm] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

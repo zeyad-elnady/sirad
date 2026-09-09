@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { getSession, isTechLead } from '@/lib/auth';
 import { recurringExpenseSchema } from '@/lib/validations';
 
 export async function GET(request: Request) {
@@ -8,8 +8,8 @@ export async function GET(request: Request) {
     const session = await getSession();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // Only Tech department can manage recurring expenses
-    if (session.role !== 'ZEYAD_TECH') {
+    // Only Tech department and Admin can manage recurring expenses
+    if (!isTechLead(session.role)) {
       return NextResponse.json({ error: 'Access denied — Tech only' }, { status: 403 });
     }
 
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     const session = await getSession();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    if (session.role !== 'ZEYAD_TECH') {
+    if (!isTechLead(session.role)) {
       return NextResponse.json({ error: 'Access denied — Tech only' }, { status: 403 });
     }
 

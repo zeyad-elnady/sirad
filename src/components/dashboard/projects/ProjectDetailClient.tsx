@@ -105,7 +105,8 @@ export default function ProjectDetailClient({
 }: Props) {
   const router = useRouter();
   const { t, isRtl, formatCurrency } = useDashboardLang();
-  const accentColor = role === 'ZEYAD_TECH' ? '#B6FF33' : '#7C3AED';
+  const isTech = role === 'ADMIN' ? (project as any).department === 'TECH' : role === 'ZEYAD_TECH';
+  const accentColor = isTech ? '#B6FF33' : '#7C3AED';
   const p = project as Record<string, any>;
   const st = statusColors[p.status as string] || statusColors.DRAFT;
   const projectTypes = p.department === 'TECH' ? techTypes : marketingTypes;

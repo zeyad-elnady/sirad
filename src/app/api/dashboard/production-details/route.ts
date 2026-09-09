@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { getSession, isMarketingLead } from '@/lib/auth';
 import { productionDetailSchema } from '@/lib/validations';
 
 export async function POST(request: Request) {
@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     const session = await getSession();
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    if (session.role !== 'YEHIA_MARKETING') {
+    if (!isMarketingLead(session.role)) {
       return NextResponse.json({ error: 'Access denied — Marketing only' }, { status: 403 });
     }
 

@@ -25,7 +25,11 @@ export default async function SettingsPage() {
           <div>
             <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6B6B70', marginBottom: '6px' }}>Role</label>
             <div style={{ padding: '12px 14px', borderRadius: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', color: '#E8E4E0', fontSize: '13px' }}>
-              {session.role === 'ZEYAD_TECH' ? 'Tech Department Lead' : 'Marketing Department Lead'}
+              {session.role === 'ADMIN'
+                ? `System Administrator (${session.department === 'TECH' ? 'Tech Active' : 'Marketing Active'})`
+                : session.role === 'ZEYAD_TECH'
+                ? 'Tech Department Lead'
+                : 'Marketing Department Lead'}
             </div>
           </div>
         </div>

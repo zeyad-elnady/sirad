@@ -8,6 +8,7 @@ import Image from 'next/image';
 import type { UserRole } from '@prisma/client';
 import { useDashboardLang } from '@/context/DashboardLanguageContext';
 import type { TranslationKey } from '@/lib/dashboard-translations';
+import { useDashboardDepartment } from '@/context/DashboardDepartmentContext';
 import {
   LayoutDashboard,
   FolderKanban,
@@ -67,6 +68,7 @@ export default function DashboardSidebar({
   const pathname = usePathname();
   const router = useRouter();
   const { isRtl, t } = useDashboardLang();
+  const { department } = useDashboardDepartment();
   const [internalHovered, setInternalHovered] = useState(false);
   const isHovered = controlledHovered !== undefined ? controlledHovered : internalHovered;
 
@@ -80,9 +82,15 @@ export default function DashboardSidebar({
     onHoverChange?.(false);
   };
 
-  const filteredItems = navItems.filter(
-    (item) => !item.roles || item.roles.includes(role)
-  );
+  const filteredItems = navItems.filter((item) => {
+    if (!item.roles) return true;
+    if (role === 'ADMIN') {
+      if (item.key === 'recurringExpenses') return department === 'TECH';
+      if (item.key === 'production') return department === 'MARKETING';
+      return true;
+    }
+    return item.roles.includes(role);
+  });
 
   async function handleLogout() {
     await fetch('/api/dashboard/auth/logout', { method: 'POST' });
@@ -90,7 +98,7 @@ export default function DashboardSidebar({
     router.refresh();
   }
 
-  const isTech = role === 'ZEYAD_TECH';
+  const isTech = role === 'ADMIN' ? department === 'TECH' : role === 'ZEYAD_TECH';
   const departmentLabel = isTech ? t('techCommand') : t('marketingHub');
 
   return (
@@ -258,7 +266,9 @@ export default function DashboardSidebar({
                   {userName}
                 </div>
                 <div className="text-[10px] text-[#B6FF33] font-headline uppercase tracking-wider font-semibold">
-                  {isTech ? t('techLead') : t('marketingLead')}
+                  {role === 'ADMIN'
+                    ? (isTech ? `${t('admin')} (${t('tech')})` : `${t('admin')} (${t('marketing')})`)
+                    : (isTech ? t('techLead') : t('marketingLead'))}
                 </div>
               </motion.div>
             )}

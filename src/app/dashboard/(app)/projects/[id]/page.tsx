@@ -13,23 +13,30 @@ export default async function ProjectDetailPage({
   if (!session) redirect('/dashboard/login');
 
   const { id } = await params;
-  const department = getDepartmentForRole(session.role);
 
-  const [project, availableEmployees, clients, salesReps, projectTransactions] = await Promise.all([
-    db.project.findUnique({
-      where: { id },
-      include: {
-        client: true,
-        salesRep: true,
-        contract: { include: { installments: { orderBy: { dueDate: 'asc' } } } },
-        employees: { include: { employee: true } },
-        recurringExpenses: { orderBy: { createdAt: 'desc' } },
-        productionDetail: true,
-        createdBy: { select: { name: true } },
-      },
-    }),
+  const project = await db.project.findUnique({
+    where: { id },
+    include: {
+      client: true,
+      salesRep: true,
+      contract: { include: { installments: { orderBy: { dueDate: 'asc' } } } },
+      employees: { include: { employee: true } },
+      recurringExpenses: { orderBy: { createdAt: 'desc' } },
+      productionDetail: true,
+      createdBy: { select: { name: true } },
+    },
+  });
+
+  if (!project) notFound();
+
+  // If not admin, restrict to user's department
+  if (session.role !== 'ADMIN' && project.department !== session.department) {
+    notFound();
+  }
+
+  const [availableEmployees, clients, salesReps, projectTransactions] = await Promise.all([
     db.employee.findMany({
-      where: { isActive: true, department },
+      where: { isActive: true, department: project.department },
       orderBy: { name: 'asc' },
     }),
     db.client.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } }),
@@ -39,8 +46,6 @@ export default async function ProjectDetailPage({
       orderBy: { date: 'desc' },
     }),
   ]);
-
-  if (!project || project.department !== department) notFound();
 
   let profit = null;
   try {

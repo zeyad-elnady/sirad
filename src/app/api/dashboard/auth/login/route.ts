@@ -35,6 +35,7 @@ export async function POST(request: Request) {
       name: user.name,
       email: user.email,
       role: user.role,
+      department: parsed.data.department,
     });
 
     return NextResponse.json({
@@ -44,6 +45,7 @@ export async function POST(request: Request) {
         name: user.name,
         email: user.email,
         role: user.role,
+        department: parsed.data.department,
       },
     });
   } catch (error) {

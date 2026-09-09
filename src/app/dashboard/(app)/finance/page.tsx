@@ -7,7 +7,7 @@ export default async function FinancePage() {
   const session = await getSession();
   if (!session) redirect('/dashboard/login');
 
-  const department = getDepartmentForRole(session.role);
+  const department = session.department;
   const overview = await getFinanceOverview(department);
 
   return <FinanceClient role={session.role} overview={overview} />;

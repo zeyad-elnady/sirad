@@ -18,6 +18,9 @@ export const dashboardTranslations = {
     marketingHub: 'Marketing Hub',
     techLead: 'Tech Lead',
     marketingLead: 'Marketing Lead',
+    admin: 'Admin',
+    switchDepartment: 'Switch Department',
+    targetDepartment: 'Target Department',
 
     // Topbar & Common
     searchPlaceholder: 'Search projects, clients, finances...',
@@ -150,6 +153,9 @@ export const dashboardTranslations = {
     marketingHub: 'مركز التسويق',
     techLead: 'المدير التقني',
     marketingLead: 'مدير التسويق',
+    admin: 'مدير النظام',
+    switchDepartment: 'تبديل القسم',
+    targetDepartment: 'القسم المستهدف',
 
     // Topbar & Common
     searchPlaceholder: 'بحث في المشاريع، العملاء، المالية...',

@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import type { UserRole } from '@prisma/client';
 import type { FinanceOverview } from '@/lib/finance';
+import { useDashboardDepartment } from '@/context/DashboardDepartmentContext';
 import {
   TrendingUp,
   Wallet,
@@ -29,7 +30,8 @@ function formatCurrency(amount: number): string {
 }
 
 export default function FinanceClient({ role, overview }: Props) {
-  const isTech = role === 'ZEYAD_TECH';
+  const { department } = useDashboardDepartment();
+  const isTech = role === 'ADMIN' ? department === 'TECH' : role === 'ZEYAD_TECH';
 
   const cards = [
     {

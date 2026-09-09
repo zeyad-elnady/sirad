@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useDashboardLang } from '@/context/DashboardLanguageContext';
+import { useDashboardDepartment } from '@/context/DashboardDepartmentContext';
 
 interface StatsData {
   totalProjects: number;
@@ -112,7 +113,8 @@ export default function DashboardOverviewClient({
   stats,
   recentProjects,
 }: Props) {
-  const isTech = role === 'ZEYAD_TECH';
+  const { department } = useDashboardDepartment();
+  const isTech = role === 'ADMIN' ? department === 'TECH' : role === 'ZEYAD_TECH';
   const { t, isRtl, formatCurrency, locale } = useDashboardLang();
   const greeting = getGreeting(locale);
 

@@ -1,4 +1,4 @@
-import { getSession } from '@/lib/auth';
+import { getSession, isTechLead } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { redirect } from 'next/navigation';
 import RecurringExpensesClient from '@/components/dashboard/tech/RecurringExpensesClient';
@@ -6,7 +6,7 @@ import RecurringExpensesClient from '@/components/dashboard/tech/RecurringExpens
 export default async function RecurringExpensesPage() {
   const session = await getSession();
   if (!session) redirect('/dashboard/login');
-  if (session.role !== 'ZEYAD_TECH') redirect('/dashboard');
+  if (!isTechLead(session.role)) redirect('/dashboard');
 
   const [expenses, projects] = await Promise.all([
     db.recurringExpense.findMany({

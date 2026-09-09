@@ -7,7 +7,7 @@ export default async function DashboardPage() {
   const session = await getSession();
   if (!session) redirect('/dashboard/login');
 
-  const department = getDepartmentForRole(session.role);
+  const department = session.department;
 
   // Fetch aggregated stats
   const [

@@ -74,7 +74,8 @@ const labelStyle: React.CSSProperties = {
 export default function NewProjectForm({ role, department, clients, salesReps, employees = [] }: Props) {
   const router = useRouter();
   const { t, isRtl } = useDashboardLang();
-  const accentColor = role === 'ZEYAD_TECH' ? '#B6FF33' : '#7C3AED';
+  const isTech = role === 'ADMIN' ? department === 'TECH' : role === 'ZEYAD_TECH';
+  const accentColor = isTech ? '#B6FF33' : '#7C3AED';
   const projectTypes = department === 'TECH' ? techTypes : marketingTypes;
 
   const [isSubmitting, setIsSubmitting] = useState(false);

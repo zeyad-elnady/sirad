@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { UserRole } from '@prisma/client';
+import { useDashboardDepartment } from '@/context/DashboardDepartmentContext';
 import {
   ArrowLeft,
   Pencil,
@@ -48,7 +49,9 @@ interface Props {
 
 export default function ClientDetailClient({ role, client }: Props) {
   const router = useRouter();
-  const accentColor = role === 'ZEYAD_TECH' ? '#B6FF33' : '#7C3AED';
+  const { department } = useDashboardDepartment();
+  const isTech = role === 'ADMIN' ? department === 'TECH' : role === 'ZEYAD_TECH';
+  const accentColor = isTech ? '#B6FF33' : '#7C3AED';
   const totalRevenue = client.projects.reduce((s, p) => s + (p.totalAmount || 0), 0);
 
   // Edit Modal State
