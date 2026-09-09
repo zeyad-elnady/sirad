@@ -16,6 +16,7 @@ import {
   UserCheck,
   Handshake,
   DollarSign,
+  ReceiptText,
   Server,
   Clapperboard,
   Settings,
@@ -44,6 +45,7 @@ const navItems: NavItem[] = [
   { key: 'employees', href: '/dashboard/employees', icon: <UserCheck size={19} /> },
   { key: 'salesReps', href: '/dashboard/sales-reps', icon: <Handshake size={19} /> },
   { key: 'finance', href: '/dashboard/finance', icon: <DollarSign size={19} /> },
+  { key: 'companyExpenses', href: '/dashboard/expenses', icon: <ReceiptText size={19} /> },
   {
     key: 'recurringExpenses',
     href: '/dashboard/recurring-expenses',

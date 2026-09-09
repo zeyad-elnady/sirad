@@ -13,6 +13,7 @@ import {
   ArrowRight,
   Plus,
   ArrowUpRight,
+  ReceiptText,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useDashboardLang } from '@/context/DashboardLanguageContext';
@@ -218,6 +219,13 @@ export default function DashboardOverviewClient({
           >
             <Plus size={16} />
             <span>{t('newProject')}</span>
+          </Link>
+          <Link
+            href="/dashboard/expenses"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/[0.1] bg-white/[0.04] text-[#e5e2e1] font-headline text-xs font-semibold hover:border-[#B6FF33]/40 hover:bg-[#B6FF33]/5 hover:text-[#B6FF33] transition-all duration-300"
+          >
+            <ReceiptText size={14} />
+            <span>{isRtl ? 'مصاريف الشركة' : 'Expenses'}</span>
           </Link>
           <Link
             href="/dashboard/finance"

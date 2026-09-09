@@ -321,3 +321,23 @@ model CompanySetting {
   @@map("company_settings")
 }
 
+model CompanyExpense {
+  id            String    @id @default(cuid())
+  title         String
+  amount        Float     @default(0)
+  category      String    @default("OTHER") // e.g. "OFFICE_RENT", "SOFTWARE", "UTILITIES", "SALARIES", "MARKETING", "LEGAL", "OTHER"
+  isMonthly     Boolean   @default(true)
+  payDay        Int?      // 1-31: Day of the month for monthly payments
+  dueDate       DateTime? // Specific due date (for one-time or next occurrence)
+  isPaid        Boolean   @default(false)
+  lastPaidDate  DateTime?
+  paymentMethod String?   // "BANK_TRANSFER", "CREDIT_CARD", "CASH", etc.
+  notes         String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("company_expenses")
+}
+
+
