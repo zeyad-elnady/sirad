@@ -10,7 +10,6 @@ export default function DashboardLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [selectedDept, setSelectedDept] = useState<'TECH' | 'MARKETING'>('TECH');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -23,7 +22,7 @@ export default function DashboardLoginPage() {
       const res = await fetch('/api/dashboard/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, department: selectedDept }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
@@ -34,7 +33,6 @@ export default function DashboardLoginPage() {
         return;
       }
 
-      document.cookie = `sirad_department=${selectedDept}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
       router.push('/dashboard');
       router.refresh();
     } catch {
@@ -324,84 +322,6 @@ export default function DashboardLoginPage() {
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 />
-              </div>
-
-              {/* Department Choice */}
-              <div style={{ marginBottom: '24px' }}>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '11px',
-                    fontFamily: '"Space Grotesk", sans-serif',
-                    fontWeight: 600,
-                    letterSpacing: '0.12em',
-                    textTransform: 'uppercase',
-                    color: 'rgba(229,226,225,0.5)',
-                    marginBottom: '8px',
-                  }}
-                >
-                  Target Department
-                </label>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
-                    gap: '8px',
-                    background: 'rgba(255,255,255,0.03)',
-                    padding: '4px',
-                    borderRadius: '14px',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setSelectedDept('TECH')}
-                    style={{
-                      padding: '10px 14px',
-                      borderRadius: '10px',
-                      border: selectedDept === 'TECH' ? '1px solid rgba(182,255,51,0.5)' : '1px solid transparent',
-                      background: selectedDept === 'TECH' ? 'rgba(182,255,51,0.15)' : 'transparent',
-                      color: selectedDept === 'TECH' ? '#B6FF33' : 'rgba(229,226,225,0.6)',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      fontFamily: '"Space Grotesk", sans-serif',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px',
-                      transition: 'all 0.2s',
-                      boxShadow: selectedDept === 'TECH' ? '0 0 15px rgba(182,255,51,0.15)' : 'none',
-                    }}
-                  >
-                    <span>💻</span>
-                    <span>Tech Command</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedDept('MARKETING')}
-                    style={{
-                      padding: '10px 14px',
-                      borderRadius: '10px',
-                      border: selectedDept === 'MARKETING' ? '1px solid rgba(139,92,246,0.5)' : '1px solid transparent',
-                      background: selectedDept === 'MARKETING' ? 'rgba(139,92,246,0.15)' : 'transparent',
-                      color: selectedDept === 'MARKETING' ? '#C4B5FD' : 'rgba(229,226,225,0.6)',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      fontFamily: '"Space Grotesk", sans-serif',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px',
-                      transition: 'all 0.2s',
-                      boxShadow: selectedDept === 'MARKETING' ? '0 0 15px rgba(139,92,246,0.15)' : 'none',
-                    }}
-                  >
-                    <span>🎬</span>
-                    <span>Marketing Hub</span>
-                  </button>
-                </div>
               </div>
 
               {/* Error Alert */}

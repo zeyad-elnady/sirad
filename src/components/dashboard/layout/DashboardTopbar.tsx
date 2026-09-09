@@ -52,34 +52,34 @@ export default function DashboardTopbar({ role, userName }: TopbarProps) {
       <div className="flex items-center gap-3 md:gap-4">
         {/* Department Switcher Capsule (shown for Admin) */}
         {canSwitch && (
-          <div className="flex items-center p-1 rounded-full border border-white/[0.1] bg-[#141416]/90 shadow-[0_2px_12px_rgba(0,0,0,0.4)]">
+          <div className="flex items-center p-1 rounded-full border border-white/[0.12] bg-[#141416]/95 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
             <button
               type="button"
               onClick={() => switchDepartment('TECH')}
               disabled={isSwitching}
-              title="Switch to Tech Department"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-headline font-bold transition-all duration-200 cursor-pointer ${
+              title="Switch to Tech Command"
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-headline font-bold transition-all duration-200 cursor-pointer ${
                 department === 'TECH'
-                  ? 'bg-[#B6FF33] text-[#121f00] shadow-[0_0_15px_rgba(182,255,51,0.35)]'
+                  ? 'bg-[#B6FF33] text-[#121f00] shadow-[0_0_18px_rgba(182,255,51,0.4)]'
                   : 'text-[#e5e2e1]/60 hover:text-white hover:bg-white/[0.05]'
               } ${isSwitching ? 'opacity-70' : ''}`}
             >
-              <Laptop size={13} />
-              <span>{t('tech')}</span>
+              <Laptop size={14} className={department === 'TECH' ? 'text-[#121f00]' : 'text-[#B6FF33]'} />
+              <span>{t('techCommand')}</span>
             </button>
             <button
               type="button"
               onClick={() => switchDepartment('MARKETING')}
               disabled={isSwitching}
-              title="Switch to Marketing Department"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-headline font-bold transition-all duration-200 cursor-pointer ${
+              title="Switch to Marketing Hub"
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-headline font-bold transition-all duration-200 cursor-pointer ${
                 department === 'MARKETING'
-                  ? 'bg-[#8B5CF6] text-white shadow-[0_0_15px_rgba(139,92,246,0.35)]'
+                  ? 'bg-[#8B5CF6] text-white shadow-[0_0_18px_rgba(139,92,246,0.4)]'
                   : 'text-[#e5e2e1]/60 hover:text-white hover:bg-white/[0.05]'
               } ${isSwitching ? 'opacity-70' : ''}`}
             >
-              <Clapperboard size={13} />
-              <span>{t('marketing')}</span>
+              <Clapperboard size={14} className={department === 'MARKETING' ? 'text-white' : 'text-[#8B5CF6]'} />
+              <span>{t('marketingHub')}</span>
             </button>
           </div>
         )}

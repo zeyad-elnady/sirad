@@ -68,7 +68,7 @@ export default function DashboardSidebar({
   const pathname = usePathname();
   const router = useRouter();
   const { isRtl, t } = useDashboardLang();
-  const { department } = useDashboardDepartment();
+  const { department, canSwitch, switchDepartment, isSwitching } = useDashboardDepartment();
   const [internalHovered, setInternalHovered] = useState(false);
   const isHovered = controlledHovered !== undefined ? controlledHovered : internalHovered;
 
@@ -152,7 +152,7 @@ export default function DashboardSidebar({
         </Link>
       </div>
 
-      {/* Sub-badge: Department & Status (shown when hovered) */}
+      {/* Sub-badge: Department Switcher / Status (shown when hovered) */}
       <AnimatePresence>
         {isHovered && (
           <motion.div
@@ -160,27 +160,67 @@ export default function DashboardSidebar({
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="px-5 pt-3.5 pb-2 overflow-hidden shrink-0"
+            className="px-4 pt-3 pb-2 overflow-hidden shrink-0"
           >
-            <div className="flex items-center justify-between px-3 py-1.5 rounded-full border border-[#B6FF33]/20 bg-[#B6FF33]/5">
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#B6FF33] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#B6FF33]"></span>
-                </span>
-                <span className="font-headline text-[10px] uppercase tracking-[0.14em] text-[#B6FF33] font-bold">
-                  {departmentLabel}
-                </span>
+            {canSwitch ? (
+              <div className="p-1 rounded-2xl border border-white/[0.08] bg-[#141416]/90 shadow-[0_2px_12px_rgba(0,0,0,0.3)] flex flex-col gap-1">
+                <div className="flex items-center justify-between px-2 pt-1 text-[10px] font-headline uppercase tracking-wider text-[#e5e2e1]/40 font-semibold">
+                  <span>{t('switchDepartment')}</span>
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isTech ? 'bg-[#B6FF33]' : 'bg-[#8B5CF6]'} opacity-75`}></span>
+                    <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${isTech ? 'bg-[#B6FF33]' : 'bg-[#8B5CF6]'}`}></span>
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-1">
+                  <button
+                    type="button"
+                    onClick={() => switchDepartment('TECH')}
+                    disabled={isSwitching}
+                    className={`flex items-center justify-center gap-1 py-1.5 px-2 rounded-xl text-[11px] font-headline font-bold transition-all cursor-pointer ${
+                      department === 'TECH'
+                        ? 'bg-[#B6FF33] text-[#121f00] shadow-[0_0_12px_rgba(182,255,51,0.3)]'
+                        : 'text-[#e5e2e1]/60 hover:text-white hover:bg-white/[0.04]'
+                    }`}
+                  >
+                    <span>💻</span>
+                    <span className="truncate">{t('tech')}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => switchDepartment('MARKETING')}
+                    disabled={isSwitching}
+                    className={`flex items-center justify-center gap-1 py-1.5 px-2 rounded-xl text-[11px] font-headline font-bold transition-all cursor-pointer ${
+                      department === 'MARKETING'
+                        ? 'bg-[#8B5CF6] text-white shadow-[0_0_12px_rgba(139,92,246,0.3)]'
+                        : 'text-[#e5e2e1]/60 hover:text-white hover:bg-white/[0.04]'
+                    }`}
+                  >
+                    <span>🎬</span>
+                    <span className="truncate">{t('marketing')}</span>
+                  </button>
+                </div>
               </div>
-              <Link
-                href="/"
-                target="_blank"
-                title="Visit main website"
-                className="text-[#e5e2e1]/40 hover:text-[#B6FF33] transition-colors"
-              >
-                <ExternalLink size={12} />
-              </Link>
-            </div>
+            ) : (
+              <div className="flex items-center justify-between px-3 py-1.5 rounded-full border border-[#B6FF33]/20 bg-[#B6FF33]/5">
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#B6FF33] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#B6FF33]"></span>
+                  </span>
+                  <span className="font-headline text-[10px] uppercase tracking-[0.14em] text-[#B6FF33] font-bold">
+                    {departmentLabel}
+                  </span>
+                </div>
+                <Link
+                  href="/"
+                  target="_blank"
+                  title="Visit main website"
+                  className="text-[#e5e2e1]/40 hover:text-[#B6FF33] transition-colors"
+                >
+                  <ExternalLink size={12} />
+                </Link>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
