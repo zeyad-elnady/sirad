@@ -39,6 +39,9 @@ export default async function EmployeeProfilePage({
   ]);
 
   if (!employee) notFound();
+  if (session.role !== 'ADMIN' && employee.department !== session.department) {
+    notFound();
+  }
 
   const balance = await calculateEmployeeBalance(id);
   const filteredProjects = departmentProjects.filter((p) => p.department === employee.department);

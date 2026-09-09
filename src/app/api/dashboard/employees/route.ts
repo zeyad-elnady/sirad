@@ -13,7 +13,11 @@ export async function GET(request: Request) {
     const department = url.searchParams.get('department');
 
     const where: Record<string, unknown> = { isActive: true };
-    if (department) where.department = department;
+    if (department) {
+      where.department = department;
+    } else if (session.role !== 'ADMIN') {
+      where.department = session.department;
+    }
     if (search) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
@@ -51,7 +55,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const employee = await db.employee.create({ data: parsed.data });
+    const employeeData = { ...parsed.data };
+    if (session.role !== 'ADMIN') {
+      employeeData.department = session.department;
+    }
+
+    const employee = await db.employee.create({ data: employeeData });
 
     await db.auditLog.create({
       data: {

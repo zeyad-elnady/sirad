@@ -7,8 +7,13 @@ export default async function EmployeesPage() {
   const session = await getSession();
   if (!session) redirect('/dashboard/login');
 
+  const where: { isActive: boolean; department?: 'TECH' | 'MARKETING' } = { isActive: true };
+  if (!session.canSwitchDepartment) {
+    where.department = session.department;
+  }
+
   const employees = await db.employee.findMany({
-    where: { isActive: true },
+    where,
     include: { _count: { select: { projectAssignments: true, transactions: true } } },
     orderBy: { createdAt: 'desc' },
   });

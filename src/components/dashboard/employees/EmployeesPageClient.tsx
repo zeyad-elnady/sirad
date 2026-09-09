@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { UserRole } from '@prisma/client';
@@ -33,19 +33,26 @@ export default function EmployeesPageClient({ role, employees }: Props) {
   const router = useRouter();
   const { t, isRtl } = useDashboardLang();
   const { department } = useDashboardDepartment();
-  const isTech = role === 'ADMIN' ? department === 'TECH' : role === 'ZEYAD_TECH';
+  const activeDept = role === 'ADMIN' ? department : (role === 'ZEYAD_TECH' ? 'TECH' : 'MARKETING');
+  const isTech = activeDept === 'TECH';
   const accentColor = isTech ? '#B6FF33' : '#7C3AED';
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({
-    name: '', email: '', phone: '', role: '', department: role === 'ADMIN' ? department : (role === 'ZEYAD_TECH' ? 'TECH' : 'MARKETING'),
+    name: '', email: '', phone: '', role: '', department: activeDept,
     paymentModel: 'PER_TASK', isFreelancer: false, monthlyRate: '', hourlyRate: '', bankDetails: '', notes: '',
   });
 
+  // Sync form department when active department switches
+  useEffect(() => {
+    setForm((prev) => ({ ...prev, department: activeDept }));
+  }, [activeDept]);
+
   const filtered = employees.filter((e) =>
-    e.name.toLowerCase().includes(search.toLowerCase()) ||
-    e.role.toLowerCase().includes(search.toLowerCase())
+    e.department === activeDept &&
+    (e.name.toLowerCase().includes(search.toLowerCase()) ||
+     e.role.toLowerCase().includes(search.toLowerCase()))
   );
 
   async function handleCreate(e: React.FormEvent) {
@@ -78,8 +85,23 @@ export default function EmployeesPageClient({ role, employees }: Props) {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif' }}>{t('employees')}</h1>
-        <button onClick={() => setShowForm(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 18px', borderRadius: '10px', background: accentColor === '#B6FF33' ? 'linear-gradient(135deg, #B6FF33, #96da00)' : `linear-gradient(135deg, ${accentColor}, ${accentColor}90)`, color: accentColor === '#B6FF33' ? '#121f00' : '#fff', border: 'none', fontSize: '13px', fontWeight: 700, cursor: 'pointer', boxShadow: accentColor === '#B6FF33' ? '0 0 25px rgba(182,255,51,0.25)' : `0 0 20px ${accentColor}20` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: 700, fontFamily: '"Space Grotesk", sans-serif' }}>{t('employees')}</h1>
+          <span style={{
+            fontSize: '11px',
+            fontWeight: 700,
+            padding: '4px 10px',
+            borderRadius: '20px',
+            background: isTech ? 'rgba(182,255,51,0.12)' : 'rgba(124,58,237,0.15)',
+            color: isTech ? '#B6FF33' : '#c4b5fd',
+            border: `1px solid ${isTech ? 'rgba(182,255,51,0.25)' : 'rgba(124,58,237,0.25)'}`,
+            letterSpacing: '0.05em',
+            textTransform: 'uppercase',
+          }}>
+            {isTech ? (isRtl ? 'فريق التكنولوجيا' : 'Tech Team') : (isRtl ? 'فريق التسويق' : 'Marketing Team')}
+          </span>
+        </div>
+        <button onClick={() => { setForm((prev) => ({ ...prev, department: activeDept })); setShowForm(true); }} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 18px', borderRadius: '10px', background: accentColor === '#B6FF33' ? 'linear-gradient(135deg, #B6FF33, #96da00)' : `linear-gradient(135deg, ${accentColor}, ${accentColor}90)`, color: accentColor === '#B6FF33' ? '#121f00' : '#fff', border: 'none', fontSize: '13px', fontWeight: 700, cursor: 'pointer', boxShadow: accentColor === '#B6FF33' ? '0 0 25px rgba(182,255,51,0.25)' : `0 0 20px ${accentColor}20` }}>
           <Plus size={16} /> {isRtl ? 'إضافة موظف جديد' : 'Register Employee'}
         </button>
       </div>
@@ -109,7 +131,12 @@ export default function EmployeesPageClient({ role, employees }: Props) {
                 <input style={inputStyle} placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
                 <input style={inputStyle} placeholder="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
                 <input style={inputStyle} placeholder="Role (e.g., Developer)" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} required />
-                <select style={{ ...inputStyle, cursor: 'pointer' }} value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value as 'TECH' | 'MARKETING' })}>
+                <select
+                  style={{ ...inputStyle, cursor: role === 'ADMIN' ? 'pointer' : 'not-allowed' }}
+                  value={form.department}
+                  disabled={role !== 'ADMIN'}
+                  onChange={(e) => setForm({ ...form, department: e.target.value as 'TECH' | 'MARKETING' })}
+                >
                   <option value="TECH" style={{ background: '#121214' }}>Tech</option>
                   <option value="MARKETING" style={{ background: '#121214' }}>Marketing</option>
                 </select>
@@ -146,8 +173,20 @@ export default function EmployeesPageClient({ role, employees }: Props) {
                 {emp.name[0]}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '14px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ fontSize: '14px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   {emp.name}
+                  <span style={{
+                    fontSize: '9px',
+                    padding: '2px 7px',
+                    borderRadius: '4px',
+                    background: emp.department === 'TECH' ? 'rgba(182,255,51,0.12)' : 'rgba(124,58,237,0.15)',
+                    color: emp.department === 'TECH' ? '#B6FF33' : '#c4b5fd',
+                    border: `1px solid ${emp.department === 'TECH' ? 'rgba(182,255,51,0.2)' : 'rgba(124,58,237,0.2)'}`,
+                    fontWeight: 700,
+                    letterSpacing: '0.05em',
+                  }}>
+                    {emp.department === 'TECH' ? 'TECH' : 'MARKETING'}
+                  </span>
                   {emp.isFreelancer && <span style={{ fontSize: '9px', padding: '2px 6px', borderRadius: '4px', background: 'rgba(124,58,237,0.15)', color: '#7C3AED', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{isRtl ? 'مستقل' : 'Freelancer'}</span>}
                 </div>
                 <div style={{ fontSize: '12px', color: '#6B6B70', marginTop: '2px' }}>{emp.role}</div>
@@ -162,7 +201,7 @@ export default function EmployeesPageClient({ role, employees }: Props) {
         {filtered.length === 0 && (
           <div style={{ gridColumn: '1 / -1', padding: '48px', textAlign: 'center', color: '#6B6B70' }}>
             <UserCheck size={36} style={{ marginBottom: '12px', opacity: 0.3 }} />
-            <p>{isRtl ? 'لا يوجد موظفون' : 'No employees found'}</p>
+            <p>{isRtl ? `لا يوجد موظفون في قسم ${isTech ? 'التكنولوجيا' : 'التسويق'}` : `No ${isTech ? 'Tech' : 'Marketing'} employees found`}</p>
           </div>
         )}
       </div>

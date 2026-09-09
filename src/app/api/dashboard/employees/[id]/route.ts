@@ -24,6 +24,9 @@ export async function GET(
     });
 
     if (!employee) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (session.role !== 'ADMIN' && employee.department !== session.department) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
 
     const balance = await calculateEmployeeBalance(id);
 
@@ -43,6 +46,12 @@ export async function PUT(
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { id } = await params;
+    const existing = await db.employee.findUnique({ where: { id } });
+    if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (session.role !== 'ADMIN' && existing.department !== session.department) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const body = await request.json();
 
     const updateData: Record<string, any> = {};
@@ -50,7 +59,10 @@ export async function PUT(
     if (body.email !== undefined) updateData.email = body.email ? body.email.trim() : null;
     if (body.phone !== undefined) updateData.phone = body.phone ? body.phone.trim() : null;
     if (body.role !== undefined) updateData.role = body.role;
-    if (body.department !== undefined) updateData.department = body.department;
+    if (body.department !== undefined) {
+      // Non-admins cannot alter the employee's department
+      updateData.department = session.role === 'ADMIN' ? body.department : existing.department;
+    }
     if (body.paymentModel !== undefined) updateData.paymentModel = body.paymentModel;
     if (body.isFreelancer !== undefined) updateData.isFreelancer = Boolean(body.isFreelancer);
     if (body.monthlyRate !== undefined) {
@@ -83,6 +95,12 @@ export async function DELETE(
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { id } = await params;
+    const existing = await db.employee.findUnique({ where: { id } });
+    if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (session.role !== 'ADMIN' && existing.department !== session.department) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     await db.employee.update({
       where: { id },
       data: { isActive: false },
