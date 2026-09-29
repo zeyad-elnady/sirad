@@ -15,6 +15,12 @@ function getJwtSecret() {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // ─── Admin Alias -> Dashboard ───
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+    const target = pathname.replace(/^\/admin/, '/dashboard');
+    return NextResponse.redirect(new URL(target, request.url));
+  }
+
   // ─── Dashboard Routes ───
   if (pathname.startsWith('/dashboard')) {
     // Allow login page and API auth routes without session
@@ -69,5 +75,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/(ar|en)/:path*', '/dashboard/:path*', '/api/dashboard/:path*'],
+  matcher: ['/', '/(ar|en)/:path*', '/dashboard/:path*', '/admin', '/admin/:path*', '/api/dashboard/:path*'],
 };
