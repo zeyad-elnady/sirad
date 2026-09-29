@@ -11,6 +11,7 @@ import {
   Mail,
   MapPin,
 } from 'lucide-react';
+import ThemeToggle from '@/components/common/ThemeToggle';
 
 const InstagramIcon = () => (
   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -118,7 +119,8 @@ export default function Header() {
         className="fixed top-3 sm:top-4 md:top-5 inset-x-0 z-40 flex flex-col items-center px-4 sm:px-6 md:px-8"
       >
         <nav
-          className="w-full max-w-7xl mx-auto rounded-2xl md:rounded-full transition-all duration-300 flex justify-between items-center px-4 sm:px-6 md:px-8 py-2 md:py-2.5 bg-[#131313]/75 backdrop-blur-2xl border border-white/10 shadow-[0_10px_35px_rgba(0,0,0,0.5),0_0_20px_rgba(182,255,51,0.06)]"
+          className="w-full max-w-7xl mx-auto rounded-2xl md:rounded-full transition-all duration-300 flex justify-between items-center px-4 sm:px-6 md:px-8 py-2 md:py-2.5 backdrop-blur-2xl border shadow-[0_10px_35px_rgba(0,0,0,0.15),0_0_20px_rgba(182,255,51,0.06)]"
+          style={{ backgroundColor: 'color-mix(in srgb, var(--sirad-bg) 75%, transparent)', borderColor: 'var(--sirad-border)' }}
         >
           {/* Logo */}
           <Link
@@ -129,6 +131,7 @@ export default function Header() {
               src="/logo-.png"
               alt="Sirad"
               fill
+              sizes="(max-width: 768px) 150px, 180px"
               className="pointer-events-none"
               style={{
                 objectFit: 'contain',
@@ -148,9 +151,12 @@ export default function Header() {
                 href={item.href}
                 className={`font-headline text-sm lg:text-base transition-colors duration-300 ${
                   pathname === item.href
-                    ? "text-[#B6FF33] font-bold relative after:content-[''] after:absolute after:-bottom-1.5 after:left-0 after:w-full after:h-0.5 after:bg-[#B6FF33] after:shadow-[0_0_10px_#B6FF33]"
-                    : 'text-[#e5e2e1]/70 hover:text-[#e5e2e1]'
+                    ? "font-bold relative after:content-[''] after:absolute after:-bottom-1.5 after:left-0 after:w-full after:h-0.5"
+                    : 'opacity-75 hover:opacity-100'
                 }`}
+                style={{
+                  color: pathname === item.href ? 'var(--sirad-lime)' : 'var(--sirad-text)',
+                }}
               >
                 {item.label}
               </Link>
@@ -158,16 +164,19 @@ export default function Header() {
           </div>
 
           {/* Right / Left Actions */}
-          <div className="flex items-center gap-3 md:gap-5 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-5 shrink-0">
+            <ThemeToggle />
+
             <button
               type="button"
               onClick={handleLanguageSwitch}
-              className="text-[#e5e2e1]/70 hover:text-white font-headline text-[11px] tracking-[0.1em] uppercase cursor-pointer transition-colors px-2.5 py-1 rounded-full hover:bg-white/5 border border-white/5"
+              className="font-headline text-[11px] tracking-[0.1em] uppercase cursor-pointer transition-colors px-2.5 py-1 rounded-full border"
+              style={{ color: 'var(--sirad-text-muted)', borderColor: 'var(--sirad-border)' }}
               aria-label="Switch Language"
             >
-              <span className={locale === 'en' ? 'text-[#B6FF33] font-bold' : ''}>EN</span>
-              <span className="mx-1 text-[#e5e2e1]/30">|</span>
-              <span className={locale === 'ar' ? 'text-[#B6FF33] font-bold' : ''}>AR</span>
+              <span className={locale === 'en' ? 'font-bold' : ''} style={locale === 'en' ? { color: 'var(--sirad-lime)' } : undefined}>EN</span>
+              <span className="mx-1" style={{ color: 'var(--sirad-text-ghost)' }}>|</span>
+              <span className={locale === 'ar' ? 'font-bold' : ''} style={locale === 'ar' ? { color: 'var(--sirad-lime)' } : undefined}>AR</span>
             </button>
 
             <Link
@@ -180,12 +189,13 @@ export default function Header() {
             {/* Mobile Menu Button on Header */}
             <button
               type="button"
-              className="md:hidden flex flex-col justify-center items-center w-9 h-9 space-y-1.5 z-40 relative rounded-full border border-white/10 bg-white/5 active:scale-95 transition-transform cursor-pointer"
+              className="md:hidden flex flex-col justify-center items-center w-9 h-9 space-y-1.5 z-40 relative rounded-full border transition-transform cursor-pointer active:scale-95"
+              style={{ borderColor: 'var(--sirad-border)', backgroundColor: 'color-mix(in srgb, var(--sirad-text) 5%, transparent)' }}
               aria-label="Open Menu"
               onClick={handleOpenMenu}
             >
-              <span className="w-4 h-0.5 bg-[#B6FF33] rounded-full" />
-              <span className="w-3 h-0.5 bg-[#B6FF33] rounded-full" />
+              <span className="w-4 h-0.5 rounded-full" style={{ backgroundColor: 'var(--sirad-lime)' }} />
+              <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: 'var(--sirad-lime)' }} />
             </button>
           </div>
         </nav>
@@ -205,20 +215,25 @@ export default function Header() {
         <button
           type="button"
           onClick={handleOpenMenu}
-          className="pointer-events-auto group flex items-center gap-3.5 px-6 py-2.5 rounded-full bg-[#131313]/90 hover:bg-[#1a1a1d] backdrop-blur-2xl border border-white/15 hover:border-[#B6FF33]/50 shadow-[0_12px_35px_rgba(0,0,0,0.7),0_0_25px_rgba(182,255,51,0.18)] cursor-pointer transition-all duration-300 active:scale-95"
+          className="pointer-events-auto group flex items-center gap-3.5 px-6 py-2.5 rounded-full backdrop-blur-2xl border cursor-pointer transition-all duration-300 active:scale-95"
+          style={{
+            backgroundColor: 'color-mix(in srgb, var(--sirad-bg-elevated) 90%, transparent)',
+            borderColor: 'var(--sirad-border)',
+            boxShadow: '0 12px 35px rgba(0,0,0,0.2), 0 0 20px var(--sirad-lime-glow)',
+          }}
           aria-label="Open Navigation Menu"
         >
           {/* Animated Hamburger Icon */}
           <div className="flex flex-col gap-1 w-4">
-            <span className="w-full h-0.5 bg-[#B6FF33] rounded-full transition-all duration-300 group-hover:w-4" />
-            <span className="w-2.5 h-0.5 bg-[#B6FF33] rounded-full transition-all duration-300 group-hover:w-full" />
+            <span className="w-full h-0.5 rounded-full transition-all duration-300 group-hover:w-4" style={{ backgroundColor: 'var(--sirad-lime)' }} />
+            <span className="w-2.5 h-0.5 rounded-full transition-all duration-300 group-hover:w-full" style={{ backgroundColor: 'var(--sirad-lime)' }} />
           </div>
 
-          <span className="font-headline text-xs font-bold tracking-[0.2em] text-[#e5e2e1] group-hover:text-white uppercase">
+          <span className="font-headline text-xs font-bold tracking-[0.2em] uppercase" style={{ color: 'var(--sirad-text)' }}>
             {t('menu')}
           </span>
 
-          <span className="w-1.5 h-1.5 rounded-full bg-[#B6FF33] shadow-[0_0_8px_#B6FF33] animate-pulse" />
+          <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: 'var(--sirad-lime)', boxShadow: '0 0 8px var(--sirad-lime)' }} />
         </button>
       </motion.div>
 
@@ -235,9 +250,9 @@ export default function Header() {
                 width: '120vmax',
                 height: '120vmax',
                 borderRadius: '50%',
-                backgroundColor: '#0c0c0d',
-                border: '2px solid rgba(182, 255, 51, 0.45)',
-                boxShadow: '0 0 100px rgba(182, 255, 51, 0.25)',
+                backgroundColor: 'var(--sirad-bg-deep)',
+                border: '2px solid var(--sirad-border-lime)',
+                boxShadow: '0 0 100px var(--sirad-lime-glow)',
                 willChange: 'transform',
                 transformOrigin: 'center center',
               }}
@@ -264,7 +279,7 @@ export default function Header() {
                 width: '120vmax',
                 height: '120vmax',
                 borderRadius: '50%',
-                border: '1.5px solid rgba(182, 255, 51, 0.7)',
+                border: '1.5px solid var(--sirad-border-lime)',
                 pointerEvents: 'none',
                 transformOrigin: 'center center',
               }}
@@ -283,7 +298,8 @@ export default function Header() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0, transition: { duration: 0.35, ease: [0.76, 0, 0.24, 1] } }}
               transition={{ duration: 0.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              className="relative z-10 w-full h-full flex flex-col justify-between p-6 sm:p-10 md:p-14 lg:p-16 text-[#e5e2e1] overflow-y-auto"
+              className="relative z-10 w-full h-full flex flex-col justify-between p-6 sm:p-10 md:p-14 lg:p-16 overflow-y-auto"
+              style={{ color: 'var(--sirad-text)' }}
             >
               {/* Ambient Background Glows */}
               <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(182,255,51,0.08)_0%,transparent_70%)] blur-[100px] pointer-events-none -z-10" />
@@ -295,7 +311,8 @@ export default function Header() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10, transition: { duration: 0.25 } }}
                 transition={{ duration: 0.55, delay: 0.28, ease: [0.22, 1, 0.36, 1] }}
-                className="flex items-center justify-between w-full max-w-7xl mx-auto shrink-0 pb-6 border-b border-white/5"
+                className="flex items-center justify-between w-full max-w-7xl mx-auto shrink-0 pb-6 border-b"
+                style={{ borderColor: 'var(--sirad-border)' }}
               >
                 {/* Logo */}
                 <Link
@@ -307,6 +324,7 @@ export default function Header() {
                     src="/logo-.png"
                     alt="Sirad"
                     fill
+                    sizes="(max-width: 768px) 150px, 180px"
                     className="pointer-events-none"
                     style={{
                       objectFit: 'contain',
@@ -319,24 +337,32 @@ export default function Header() {
                 </Link>
 
                 {/* Action Controls */}
-                <div className="flex items-center gap-4 sm:gap-6">
+                <div className="flex items-center gap-3 sm:gap-6">
+                  <ThemeToggle />
+
                   {/* Language Switcher */}
                   <button
                     type="button"
                     onClick={handleLanguageSwitch}
-                    className="text-[#e5e2e1]/70 hover:text-white font-headline text-xs tracking-[0.1em] uppercase cursor-pointer transition-colors px-3 py-1.5 rounded-full hover:bg-white/5 border border-white/10"
+                    className="font-headline text-xs tracking-[0.1em] uppercase cursor-pointer transition-colors px-3 py-1.5 rounded-full border"
+                    style={{
+                      color: 'var(--sirad-text-muted)',
+                      borderColor: 'var(--sirad-border)',
+                      backgroundColor: 'color-mix(in srgb, var(--sirad-text) 5%, transparent)',
+                    }}
                     aria-label="Switch Language"
                   >
-                    <span className={locale === 'en' ? 'text-[#B6FF33] font-bold' : ''}>EN</span>
-                    <span className="mx-1 text-[#e5e2e1]/30">|</span>
-                    <span className={locale === 'ar' ? 'text-[#B6FF33] font-bold' : ''}>AR</span>
+                    <span className={locale === 'en' ? 'font-bold' : ''} style={locale === 'en' ? { color: 'var(--sirad-lime)' } : undefined}>EN</span>
+                    <span className="mx-1" style={{ color: 'var(--sirad-text-ghost)' }}>|</span>
+                    <span className={locale === 'ar' ? 'font-bold' : ''} style={locale === 'ar' ? { color: 'var(--sirad-lime)' } : undefined}>AR</span>
                   </button>
 
                   {/* Let's Talk CTA */}
                   <Link
                     href="/contact"
                     onClick={() => setIsMenuOpen(false)}
-                    className="hidden sm:inline-flex items-center gap-2 text-xs font-headline font-bold uppercase tracking-[0.15em] text-[#B6FF33] hover:text-white transition-colors group"
+                    className="hidden sm:inline-flex items-center gap-2 text-xs font-headline font-bold uppercase tracking-[0.15em] transition-colors group"
+                    style={{ color: 'var(--sirad-lime)' }}
                   >
                     <span>{t('getQuote')}</span>
                     <ArrowUpRight size={15} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
@@ -346,7 +372,12 @@ export default function Header() {
                   <button
                     type="button"
                     onClick={() => setIsMenuOpen(false)}
-                    className="w-11 h-11 sm:w-13 sm:h-13 rounded-full border border-white/20 bg-white/5 hover:bg-[#B6FF33] text-white hover:text-[#121f00] hover:border-[#B6FF33] flex items-center justify-center transition-all duration-300 active:scale-95 shadow-lg group cursor-pointer"
+                    className="w-11 h-11 sm:w-13 sm:h-13 rounded-full border flex items-center justify-center transition-all duration-300 active:scale-95 shadow-lg group cursor-pointer"
+                    style={{
+                      borderColor: 'var(--sirad-border)',
+                      backgroundColor: 'color-mix(in srgb, var(--sirad-text) 5%, transparent)',
+                      color: 'var(--sirad-text)',
+                    }}
                     aria-label="Close Menu"
                   >
                     <X size={20} className="group-hover:rotate-90 transition-transform duration-300" />
@@ -415,7 +446,7 @@ export default function Header() {
                             <span
                               className="font-headline text-xs sm:text-sm font-semibold tracking-widest transition-colors duration-300"
                               style={{
-                                color: isHovered || isActive ? '#B6FF33' : 'rgba(229, 226, 225, 0.25)',
+                                color: isHovered || isActive ? 'var(--sirad-lime)' : 'var(--sirad-text-ghost)',
                               }}
                             >
                               {item.num}
@@ -427,13 +458,13 @@ export default function Header() {
                               style={{
                                 color:
                                   isHovered || isActive
-                                    ? '#ffffff'
+                                    ? 'var(--sirad-lime)'
                                     : isAnyHovered
-                                    ? 'rgba(229, 226, 225, 0.2)'
-                                    : 'rgba(229, 226, 225, 0.85)',
+                                    ? 'var(--sirad-text-ghost)'
+                                    : 'var(--sirad-text)',
                                 textShadow:
                                   isHovered || isActive
-                                    ? '0 0 30px rgba(182, 255, 51, 0.35)'
+                                    ? '0 0 30px var(--sirad-lime-glow)'
                                     : 'none',
                               }}
                             >
@@ -444,7 +475,8 @@ export default function Header() {
                             <motion.span
                               initial={false}
                               animate={isHovered ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 }}
-                              className="w-2.5 h-2.5 rounded-full bg-[#B6FF33] shadow-[0_0_12px_#B6FF33] shrink-0"
+                              className="w-2.5 h-2.5 rounded-full shrink-0"
+                              style={{ backgroundColor: 'var(--sirad-lime)', boxShadow: '0 0 12px var(--sirad-lime)' }}
                             />
                           </Link>
                         </motion.div>
@@ -459,32 +491,35 @@ export default function Header() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10, transition: { duration: 0.28, ease: [0.76, 0, 0.24, 1] } }}
                   transition={{ delay: 0.5, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                  className="flex flex-col gap-8 max-w-sm w-full pt-8 lg:pt-0 border-t lg:border-t-0 border-white/5"
+                  className="flex flex-col gap-8 max-w-sm w-full pt-8 lg:pt-0 border-t lg:border-t-0"
+                  style={{ borderColor: 'var(--sirad-border)' }}
                 >
                   <div>
-                    <span className="text-[10px] font-headline uppercase tracking-[0.25em] text-[#B6FF33] font-bold block mb-3">
+                    <span className="text-[10px] font-headline uppercase tracking-[0.25em] font-bold block mb-3" style={{ color: 'var(--sirad-lime)' }}>
                       {t('getInTouch')}
                     </span>
                     <a
                       href="mailto:hello@sirad-agancy.com"
-                      className="text-lg sm:text-xl font-headline font-semibold text-[#e5e2e1] hover:text-[#B6FF33] transition-colors block mb-2"
+                      className="text-lg sm:text-xl font-headline font-semibold transition-colors block mb-2"
+                      style={{ color: 'var(--sirad-text)' }}
                     >
                       hello@sirad-agancy.com
                     </a>
                     <a
                       href="tel:+201000000000"
-                      className="text-sm font-headline text-[#e5e2e1]/60 hover:text-[#B6FF33] transition-colors block"
+                      className="text-sm font-headline transition-colors block"
+                      style={{ color: 'var(--sirad-text-muted)' }}
                     >
                       +20 100 000 0000
                     </a>
                   </div>
 
                   <div>
-                    <div className="flex items-center gap-2 text-xs font-headline uppercase tracking-wider text-[#e5e2e1]/60 mb-2">
-                      <MapPin size={13} className="text-[#B6FF33]" />
+                    <div className="flex items-center gap-2 text-xs font-headline uppercase tracking-wider mb-2" style={{ color: 'var(--sirad-text-muted)' }}>
+                      <MapPin size={13} style={{ color: 'var(--sirad-lime)' }} />
                       <span>{t('location')}</span>
                     </div>
-                    <p className="text-xs text-[#e5e2e1]/40 leading-relaxed">
+                    <p className="text-xs leading-relaxed" style={{ color: 'var(--sirad-text-dim)' }}>
                       Creative Digital Hub & Engineering Studio
                     </p>
                   </div>
@@ -504,7 +539,12 @@ export default function Header() {
                           href={s.href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-10 h-10 rounded-full border border-white/10 bg-white/5 hover:bg-[#B6FF33]/15 hover:border-[#B6FF33]/50 hover:text-[#B6FF33] text-[#e5e2e1]/70 flex items-center justify-center transition-all duration-300 active:scale-95"
+                          className="w-10 h-10 rounded-full border flex items-center justify-center transition-all duration-300 active:scale-95"
+                          style={{
+                            borderColor: 'var(--sirad-border)',
+                            backgroundColor: 'color-mix(in srgb, var(--sirad-text) 5%, transparent)',
+                            color: 'var(--sirad-text)',
+                          }}
                           aria-label={s.label}
                         >
                           <Icon />
@@ -521,10 +561,11 @@ export default function Header() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, transition: { duration: 0.25 } }}
                 transition={{ delay: 0.6, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                className="w-full max-w-7xl mx-auto shrink-0 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-headline text-[#e5e2e1]/40"
+                className="w-full max-w-7xl mx-auto shrink-0 pt-6 border-t flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-headline"
+                style={{ borderColor: 'var(--sirad-border)', color: 'var(--sirad-text-dim)' }}
               >
-                <span>© {new Date().getFullYear()} Sirad Agency. All rights reserved.</span>
-                <span className="text-[#B6FF33]/80 font-bold uppercase tracking-wider">
+                <span suppressHydrationWarning>© 2026 Sirad Agency. All rights reserved.</span>
+                <span className="font-bold uppercase tracking-wider" style={{ color: 'var(--sirad-lime)' }}>
                   Crafted with Precision ✦ Sirad
                 </span>
               </motion.div>

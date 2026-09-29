@@ -50,20 +50,21 @@ function ServiceRow({
 }) {
   return (
     <div
-      className="group relative flex w-full cursor-pointer items-center justify-between border-t border-white/[0.07] px-0 py-8 md:py-10 transition-all duration-300 last:border-b hover:px-4 md:hover:px-6"
+      className="group relative flex w-full cursor-pointer items-center justify-between px-0 py-8 md:py-10 transition-all duration-300 last:border-b hover:px-4 md:hover:px-6"
+      style={{ borderTop: '1px solid var(--sirad-border)' }}
       onMouseEnter={() => setModal({ active: true, index })}
       onMouseLeave={() => setModal({ active: false, index })}
     >
       {/* Left — number + title */}
       <div className={`flex items-center gap-5 md:gap-8 ${isRtl ? 'flex-row-reverse' : ''}`}>
-        <span className="font-headline text-xs font-bold text-[#B6FF33]/40 tracking-[0.2em] w-6 text-right shrink-0">
+        <span className="font-headline text-xs font-bold tracking-[0.2em] w-6 text-right shrink-0" style={{ color: 'color-mix(in srgb, var(--sirad-lime) 40%, transparent)' }}>
           0{index + 1}
         </span>
         <div className={`flex flex-col gap-1 ${isRtl ? 'items-end' : ''}`}>
-          <h3 className="font-headline font-bold text-2xl md:text-4xl lg:text-5xl text-[#e5e2e1] group-hover:text-[#B6FF33] transition-colors duration-300 leading-none">
+          <h3 className="font-headline font-bold text-2xl md:text-4xl lg:text-5xl transition-colors duration-300 leading-none group-hover:!text-[var(--sirad-lime)]" style={{ color: 'var(--sirad-text)' }}>
             {service.title}
           </h3>
-          <p className="text-[#e5e2e1]/35 text-xs md:text-sm font-body transition-all duration-300 group-hover:text-[#e5e2e1]/60">
+          <p className="text-xs md:text-sm font-body transition-all duration-300" style={{ color: 'var(--sirad-text-dim)' }}>
             {service.subtitle}
           </p>
         </div>
@@ -71,22 +72,29 @@ function ServiceRow({
 
       {/* Right — tag + arrow */}
       <div className={`hidden md:flex items-center gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
-        <span className="text-[10px] font-headline font-bold uppercase tracking-[0.2em] text-[#e5e2e1]/25 group-hover:text-[#B6FF33]/70 transition-colors duration-300 border border-white/[0.06] group-hover:border-[#B6FF33]/30 px-3 py-1.5 rounded-full">
+        <span
+          className="text-[10px] font-headline font-bold uppercase tracking-[0.2em] transition-colors duration-300 px-3 py-1.5 rounded-full"
+          style={{
+            color: 'var(--sirad-text-ghost)',
+            border: '1px solid var(--sirad-border)',
+          }}
+        >
           {service.tag}
         </span>
         <span
-          className={`material-symbols-outlined text-xl text-[#e5e2e1]/20 group-hover:text-[#B6FF33] transition-all duration-300 ${
+          className={`material-symbols-outlined text-xl transition-all duration-300 group-hover:!text-[var(--sirad-lime)] ${
             isRtl
               ? 'group-hover:-translate-x-2 rotate-180'
               : 'group-hover:translate-x-2'
           }`}
+          style={{ color: 'var(--sirad-text-ghost)' }}
         >
           arrow_forward
         </span>
       </div>
 
       {/* Bottom border glow */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#B6FF33]/0 to-transparent group-hover:via-[#B6FF33]/20 transition-all duration-500" />
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-transparent to-transparent group-hover:via-[var(--sirad-lime-glow)] transition-all duration-500" />
     </div>
   );
 }
@@ -144,7 +152,7 @@ function Modal({
             <div
               key={service.id}
               className="relative flex h-full w-full items-center justify-center overflow-hidden"
-              style={{ backgroundColor: '#0e0e0e' }}
+              style={{ backgroundColor: 'var(--sirad-bg-deep)' }}
             >
               <Image
                 src={service.image}
@@ -154,13 +162,13 @@ function Modal({
                 sizes="320px"
               />
               {/* Lime accent overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-[#B6FF33]/10 to-transparent" />
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom right, color-mix(in srgb, var(--sirad-lime) 10%, transparent), transparent)' }} />
               {/* Icon overlay */}
               <div className="relative z-10 flex flex-col items-center gap-2">
-                <span className={`material-symbols-outlined text-5xl text-[#B6FF33] drop-shadow-[0_0_20px_rgba(182,255,51,0.8)]`}>
+                <span className="material-symbols-outlined text-5xl" style={{ color: 'var(--sirad-lime)', filter: 'drop-shadow(0 0 20px var(--sirad-lime-glow))' }}>
                   {service.icon}
                 </span>
-                <span className="font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-[#B6FF33]/80">
+                <span className="font-headline text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'color-mix(in srgb, var(--sirad-lime) 80%, transparent)' }}>
                   {service.tag}
                 </span>
               </div>
@@ -175,7 +183,8 @@ function Modal({
         animate={active ? 'enter' : 'closed'}
         initial="initial"
         variants={scaleAnimation}
-        className="pointer-events-none fixed z-50 flex h-16 w-16 items-center justify-center rounded-full bg-[#B6FF33] shadow-[0_0_30px_rgba(182,255,51,0.6)]"
+        className="pointer-events-none fixed z-50 flex h-16 w-16 items-center justify-center rounded-full"
+        style={{ backgroundColor: 'var(--sirad-lime)', boxShadow: '0 0 30px var(--sirad-lime-glow)' }}
       />
 
       {/* "View" label */}
@@ -184,7 +193,8 @@ function Modal({
         animate={active ? 'enter' : 'closed'}
         initial="initial"
         variants={scaleAnimation}
-        className="pointer-events-none fixed z-50 flex h-16 w-16 items-center justify-center rounded-full bg-transparent font-headline text-[10px] font-black uppercase tracking-widest text-[#131313]"
+        className="pointer-events-none fixed z-50 flex h-16 w-16 items-center justify-center rounded-full bg-transparent font-headline text-[10px] font-black uppercase tracking-widest"
+        style={{ color: 'var(--sirad-lime-text)' }}
       >
         View
       </motion.div>
@@ -242,17 +252,19 @@ export default function Services() {
   ];
 
   return (
-    <section className="relative bg-[#131313] overflow-hidden">
+    <section className="relative overflow-hidden" style={{ backgroundColor: 'var(--sirad-bg)' }}>
       {/* Subtle top separator glow */}
       <div
         aria-hidden
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-[#B6FF33]/20 to-transparent"
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px"
+        style={{ background: 'linear-gradient(to right, transparent, var(--sirad-lime-glow), transparent)' }}
       />
 
       {/* Radial ambient */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_0%,rgba(182,255,51,0.04)_0%,transparent_60%)]"
+        className="pointer-events-none absolute inset-0"
+        style={{ background: 'radial-gradient(ellipse at 30% 0%, color-mix(in srgb, var(--sirad-lime) 4%, transparent) 0%, transparent 60%)' }}
       />
 
       <div className="max-w-screen-xl mx-auto px-6 md:px-8 py-24 md:py-32 relative z-10">
@@ -260,21 +272,21 @@ export default function Services() {
         {/* ── Section Header ── */}
         <div className={`flex flex-col md:flex-row justify-between items-end mb-16 md:mb-24 gap-8 ${isRtl ? 'md:flex-row-reverse' : ''}`}>
           <FadeIn direction={isRtl ? 'right' : 'left'} className="max-w-2xl">
-            <p className="font-headline text-[10px] uppercase tracking-[0.25em] text-[#B6FF33] font-bold mb-4">
+            <p className="font-headline text-[10px] uppercase tracking-[0.25em] font-bold mb-4" style={{ color: 'var(--sirad-lime)' }}>
               {t('badge')}
             </p>
-            <h2 className="font-headline font-bold text-4xl md:text-6xl tracking-tight text-[#e5e2e1] leading-[1.05]">
+            <h2 className="font-headline font-bold text-4xl md:text-6xl tracking-tight leading-[1.05]" style={{ color: 'var(--sirad-text)' }}>
               {t('title1')}
               <br />
-              <em className="text-[#e5e2e1]/30 not-italic">{t('title2')}</em>
+              <em className="not-italic" style={{ color: 'var(--sirad-text-ghost)' }}>{t('title2')}</em>
             </h2>
           </FadeIn>
 
           {/* Hairline */}
-          <div className="h-px flex-grow bg-gradient-to-r from-white/5 to-transparent mx-12 hidden lg:block" />
+          <div className="h-px flex-grow mx-12 hidden lg:block" style={{ background: 'linear-gradient(to right, var(--sirad-border), transparent)' }} />
 
           <FadeIn direction={isRtl ? 'left' : 'right'} delay={0.2} className={`${isRtl ? 'text-left' : 'text-right'} max-w-64`}>
-            <p className="text-[#e5e2e1]/40 text-sm leading-relaxed">
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--sirad-text-dim)' }}>
               {t('description')}
             </p>
           </FadeIn>
@@ -298,10 +310,11 @@ export default function Services() {
         {/* ── Bottom CTA strip ── */}
         <FadeIn direction="up" delay={0.3}>
           <div className={`mt-16 flex items-center gap-4 ${isRtl ? 'flex-row-reverse' : ''}`}>
-            <div className="h-px flex-grow bg-white/[0.04]" />
+            <div className="h-px flex-grow" style={{ backgroundColor: 'var(--sirad-border)' }} />
             <a
               href="/services"
-              className="group inline-flex items-center gap-2 font-headline text-[10px] uppercase tracking-[0.2em] font-bold text-[#e5e2e1]/30 hover:text-[#B6FF33] transition-colors duration-300"
+              className="group inline-flex items-center gap-2 font-headline text-[10px] uppercase tracking-[0.2em] font-bold transition-colors duration-300"
+              style={{ color: 'var(--sirad-text-ghost)' }}
             >
               {isRtl ? 'اطلع على جميع خدماتنا' : 'Explore all services'}
               <span

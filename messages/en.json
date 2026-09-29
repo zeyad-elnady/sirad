@@ -49,8 +49,9 @@
     "marketingList3": "Media Buying"
   },
   "Portfolio": {
-    "title": "Selected Works",
-    "viewAll": "View All Projects"
+    "badge": "Leadership & Vision",
+    "title": "Our Team",
+    "viewAll": "Meet The Team"
   },
   "Testimonials": {
     "badge": "Client Feedback",

@@ -71,19 +71,26 @@ const ReviewCard = ({
   body: string;
 }) => {
   return (
-    <Card className="relative h-full w-72 cursor-pointer overflow-hidden rounded-2xl border-white/8 bg-[#1a1a1a] shadow-none p-5 mx-2 hover:border-[#B6FF33]/30 transition-all duration-300">
+    <Card
+      className="relative h-full w-72 cursor-pointer overflow-hidden rounded-2xl shadow-none p-5 mx-2 transition-all duration-300"
+      style={{
+        backgroundColor: 'var(--sirad-review-bg)',
+        borderColor: 'var(--sirad-review-border)',
+      }}
+    >
       <CardContent className="p-0 flex flex-col gap-3">
         <div className="flex flex-row items-center gap-3">
           <img
-            className="rounded-full w-9 h-9 object-cover border border-white/10"
+            className="rounded-full w-9 h-9 object-cover"
             width="36"
             height="36"
             alt={name}
             src={profile}
+            style={{ borderColor: 'var(--sirad-border)' }}
           />
           <div className="flex flex-col">
-            <p className="text-sm font-semibold text-[#e5e2e1]">{name}</p>
-            <p className="text-xs font-medium text-[#e5e2e1]/40">
+            <p className="text-sm font-semibold" style={{ color: 'var(--sirad-text)' }}>{name}</p>
+            <p className="text-xs font-medium" style={{ color: 'var(--sirad-text-dim)' }}>
               {username}
             </p>
           </div>
@@ -91,12 +98,12 @@ const ReviewCard = ({
         {/* Stars */}
         <div className="flex gap-0.5">
           {[...Array(5)].map((_, i) => (
-            <svg key={i} className="w-3.5 h-3.5 text-[#B6FF33]" fill="currentColor" viewBox="0 0 20 20">
+            <svg key={i} className="w-3.5 h-3.5" style={{ color: 'var(--sirad-lime)' }} fill="currentColor" viewBox="0 0 20 20">
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
             </svg>
           ))}
         </div>
-        <p className="text-sm text-[#e5e2e1]/70 leading-relaxed line-clamp-3">{body}</p>
+        <p className="text-sm leading-relaxed line-clamp-3" style={{ color: 'var(--sirad-text-muted)' }}>{body}</p>
       </CardContent>
     </Card>
   );
@@ -106,23 +113,23 @@ export default function Testimonials() {
   const t = useTranslations('Testimonials');
 
   return (
-    <section className="py-24 md:py-32 relative overflow-hidden">
+    <section className="py-24 md:py-32 relative overflow-hidden" style={{ backgroundColor: 'var(--sirad-bg)' }}>
       {/* Background radial gradient */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#B6FF33]/[0.03] via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, var(--sirad-lime-glow) 0%, transparent 60%)' }} />
 
       <div className="max-w-screen-2xl mx-auto px-6 md:px-8 relative z-10 w-full">
         {/* Header */}
         <div className="mb-16 md:mb-20">
           <FadeIn direction="up">
-            <div className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-full border border-[#B6FF33]/20 bg-[#B6FF33]/5 mb-6">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#B6FF33] animate-ping" />
-              <span className="font-headline text-[10px] uppercase tracking-[0.15em] text-[#B6FF33] font-bold">
+            <div className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-full mb-6" style={{ borderColor: 'var(--sirad-border-lime)', border: '1px solid var(--sirad-border-lime)', backgroundColor: 'color-mix(in srgb, var(--sirad-lime) 5%, transparent)' }}>
+              <span className="w-1.5 h-1.5 rounded-full animate-ping" style={{ backgroundColor: 'var(--sirad-lime)' }} />
+              <span className="font-headline text-[10px] uppercase tracking-[0.15em] font-bold" style={{ color: 'var(--sirad-lime)' }}>
                 {t('badge')}
               </span>
             </div>
           </FadeIn>
           <FadeIn direction="up" delay={0.1}>
-            <h2 className="font-headline font-bold text-4xl md:text-5xl lg:text-6xl tracking-tight text-[#e5e2e1]">
+            <h2 className="font-headline font-bold text-4xl md:text-5xl lg:text-6xl tracking-tight" style={{ color: 'var(--sirad-text)' }}>
               {t('title')}
             </h2>
           </FadeIn>
@@ -144,8 +151,8 @@ export default function Testimonials() {
           </Marquee>
 
           {/* Edge fade masks */}
-          <div className="pointer-events-none absolute inset-y-0 left-0 w-1/6 bg-gradient-to-r from-[#131313] to-transparent" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-1/6 bg-gradient-to-l from-[#131313] to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-1/6" style={{ background: `linear-gradient(to right, var(--sirad-fade-color), transparent)` }} />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-1/6" style={{ background: `linear-gradient(to left, var(--sirad-fade-color), transparent)` }} />
         </div>
       </FadeIn>
     </section>

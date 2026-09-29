@@ -77,6 +77,96 @@
 }
 
 /* ==============================
+   SIRAD THEME CUSTOM PROPERTIES
+   These CSS variables power the entire light/dark system.
+   Components use var(--sirad-*) instead of hardcoded hex values.
+   ============================== */
+
+/* ── Dark Theme (default) ── */
+:root, .dark {
+  --sirad-bg:              #131313;
+  --sirad-bg-deep:         #0e0e0e;
+  --sirad-bg-elevated:     #1a1a1a;
+  --sirad-bg-card:         #2a2a2a;
+  --sirad-bg-hover:        #353534;
+
+  --sirad-text:            #e5e2e1;
+  --sirad-text-muted:      rgba(229, 226, 225, 0.5);
+  --sirad-text-dim:        rgba(229, 226, 225, 0.35);
+  --sirad-text-ghost:      rgba(229, 226, 225, 0.2);
+
+  --sirad-lime:            #B6FF33;
+  --sirad-lime-dim:        #96da00;
+  --sirad-lime-glow:       rgba(182, 255, 51, 0.3);
+  --sirad-lime-text:       #121f00;
+
+  --sirad-border:          rgba(255, 255, 255, 0.08);
+  --sirad-border-hover:    rgba(255, 255, 255, 0.20);
+  --sirad-border-lime:     rgba(182, 255, 51, 0.30);
+
+  --sirad-glass:           rgba(42, 42, 42, 0.4);
+  --sirad-glass-border:    rgba(255, 255, 255, 0.1);
+  --sirad-overlay:         rgba(0, 0, 0, 0.35);
+
+  --sirad-scrollbar-track: #0e0e0e;
+  --sirad-scrollbar-thumb: #353534;
+
+  --sirad-gradient-cta:    linear-gradient(to bottom, #131313 0%, transparent 15%, transparent 85%, #0e0e0e 100%);
+
+  /* Testimonials card */
+  --sirad-review-bg:       #1a1a1a;
+  --sirad-review-border:   rgba(255, 255, 255, 0.08);
+  --sirad-fade-color:      #131313;
+
+  /* Footer */
+  --sirad-footer-bg:       #0e0e0e;
+
+  color-scheme: dark;
+}
+
+/* ── Light Theme ── */
+.light {
+  --sirad-bg:              #f8f7f5;
+  --sirad-bg-deep:         #efeee9;
+  --sirad-bg-elevated:     #ffffff;
+  --sirad-bg-card:         #f0eeea;
+  --sirad-bg-hover:        #e8e6e1;
+
+  --sirad-text:            #1a1a1a;
+  --sirad-text-muted:      rgba(26, 26, 26, 0.55);
+  --sirad-text-dim:        rgba(26, 26, 26, 0.35);
+  --sirad-text-ghost:      rgba(26, 26, 26, 0.15);
+
+  --sirad-lime:            #5a8c00;
+  --sirad-lime-dim:        #4a7400;
+  --sirad-lime-glow:       rgba(90, 140, 0, 0.25);
+  --sirad-lime-text:       #ffffff;
+
+  --sirad-border:          rgba(0, 0, 0, 0.08);
+  --sirad-border-hover:    rgba(0, 0, 0, 0.18);
+  --sirad-border-lime:     rgba(90, 140, 0, 0.30);
+
+  --sirad-glass:           rgba(255, 255, 255, 0.65);
+  --sirad-glass-border:    rgba(0, 0, 0, 0.08);
+  --sirad-overlay:         rgba(255, 255, 255, 0.5);
+
+  --sirad-scrollbar-track: #efeee9;
+  --sirad-scrollbar-thumb: #ccc9c3;
+
+  --sirad-gradient-cta:    linear-gradient(to bottom, #f8f7f5 0%, transparent 15%, transparent 85%, #efeee9 100%);
+
+  /* Testimonials card */
+  --sirad-review-bg:       #ffffff;
+  --sirad-review-border:   rgba(0, 0, 0, 0.08);
+  --sirad-fade-color:      #f8f7f5;
+
+  /* Footer */
+  --sirad-footer-bg:       #efeee9;
+
+  color-scheme: light;
+}
+
+/* ==============================
    BASE STYLES
    ============================== */
 html, body {
@@ -85,9 +175,10 @@ html, body {
 }
 
 body {
-  background-color: #131313;
-  color: #e5e2e1;
+  background-color: var(--sirad-bg);
+  color: var(--sirad-text);
   font-family: var(--font-body);
+  transition: background-color 0.5s ease, color 0.4s ease;
 }
 
 /* Remove spin buttons / scroll wheel in all number input boxes */
@@ -122,20 +213,20 @@ input[type="number"] {
    ============================== */
 @layer utilities {
   .glass-card {
-    background: rgba(42, 42, 42, 0.4);
+    background: var(--sirad-glass);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--sirad-glass-border);
+    border-left: 1px solid var(--sirad-glass-border);
   }
 
   [dir="rtl"] .glass-card {
     border-left: none;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-right: 1px solid var(--sirad-glass-border);
   }
 
   .glow-text {
-    text-shadow: 0 0 20px rgba(182, 255, 51, 0.3);
+    text-shadow: 0 0 20px var(--sirad-lime-glow);
   }
 
   .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -156,7 +247,7 @@ input[type="number"] {
     background: radial-gradient(circle at 50% 50%, rgba(182, 255, 51, 0.1) 0%, transparent 70%);
   }
   .neon-monolith-shadow {
-    box-shadow: 0 0 60px -15px rgba(182, 255, 51, 0.25);
+    box-shadow: 0 0 60px -15px var(--sirad-lime-glow);
   }
 
   /* Marquee animations */
@@ -188,8 +279,8 @@ input[type="number"] {
    SCROLLBAR
    ============================== */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #0e0e0e; }
-::-webkit-scrollbar-thumb { background: #353534; border-radius: 10px; }
+::-webkit-scrollbar-track { background: var(--sirad-scrollbar-track); }
+::-webkit-scrollbar-thumb { background: var(--sirad-scrollbar-thumb); border-radius: 10px; }
 
 /* Material Symbols icon style */
 .material-symbols-outlined {
