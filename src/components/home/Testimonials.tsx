@@ -71,7 +71,7 @@ const ReviewCard = ({
   body: string;
 }) => {
   return (
-    <Card className="relative h-full w-72 cursor-pointer overflow-hidden border-white/8 bg-[#1a1a1a] shadow-none p-5 mx-2 hover:border-[#B6FF33]/30 transition-all duration-300">
+    <Card className="relative h-full w-72 cursor-pointer overflow-hidden rounded-2xl border-white/8 bg-[#1a1a1a] shadow-none p-5 mx-2 hover:border-[#B6FF33]/30 transition-all duration-300">
       <CardContent className="p-0 flex flex-col gap-3">
         <div className="flex flex-row items-center gap-3">
           <img
@@ -132,12 +132,12 @@ export default function Testimonials() {
       {/* Marquee — full bleed */}
       <FadeIn direction="up" delay={0.2}>
         <div className="relative flex w-full flex-col items-center justify-center overflow-hidden gap-4">
-          <Marquee pauseOnHover className="[--duration:30s]">
+          <Marquee reverse pauseOnHover className="[--duration:30s]">
             {firstRow.map((review) => (
               <ReviewCard key={review.username + review.name} {...review} />
             ))}
           </Marquee>
-          <Marquee reverse pauseOnHover className="[--duration:30s]">
+          <Marquee pauseOnHover className="[--duration:30s]">
             {secondRow.map((review) => (
               <ReviewCard key={review.username + review.name} {...review} />
             ))}
