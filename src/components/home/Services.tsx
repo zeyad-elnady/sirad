@@ -115,10 +115,10 @@ function Modal({
     const yMoveCursorLabel = gsap.quickTo(cursorLabel.current,   'top',  { duration: 0.45, ease: 'power3' });
 
     const onMouseMove = (e: MouseEvent) => {
-      const { pageX, pageY } = e;
-      xMoveContainer(pageX);  yMoveContainer(pageY);
-      xMoveCursor(pageX);     yMoveCursor(pageY);
-      xMoveCursorLabel(pageX); yMoveCursorLabel(pageY);
+      const { clientX, clientY } = e;
+      xMoveContainer(clientX);  yMoveContainer(clientY);
+      xMoveCursor(clientX);     yMoveCursor(clientY);
+      xMoveCursorLabel(clientX); yMoveCursorLabel(clientY);
     };
 
     window.addEventListener('mousemove', onMouseMove);
