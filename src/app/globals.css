@@ -158,6 +158,24 @@ input[type="number"] {
   .neon-monolith-shadow {
     box-shadow: 0 0 60px -15px rgba(182, 255, 51, 0.25);
   }
+
+  /* Marquee animations */
+  .animate-marquee {
+    animation: marquee var(--duration, 40s) linear infinite;
+  }
+  .animate-marquee-vertical {
+    animation: marquee-vertical var(--duration, 40s) linear infinite;
+  }
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(calc(-100% - var(--gap, 1rem))); }
+}
+
+@keyframes marquee-vertical {
+  from { transform: translateY(0); }
+  to   { transform: translateY(calc(-100% - var(--gap, 1rem))); }
 }
 
 /* ==============================
