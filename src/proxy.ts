@@ -15,6 +15,11 @@ function getJwtSecret() {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // ─── Login Alias -> Dashboard Login ───
+  if (pathname === '/login') {
+    return NextResponse.redirect(new URL('/dashboard/login', request.url));
+  }
+
   // ─── Admin Alias -> Dashboard ───
   if (pathname === '/admin' || pathname.startsWith('/admin/')) {
     const target = pathname.replace(/^\/admin/, '/dashboard');
@@ -75,5 +80,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/(ar|en)/:path*', '/dashboard/:path*', '/admin', '/admin/:path*', '/api/dashboard/:path*'],
+  matcher: ['/', '/(ar|en)/:path*', '/dashboard/:path*', '/admin', '/admin/:path*', '/login', '/api/dashboard/:path*'],
 };
