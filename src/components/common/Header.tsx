@@ -114,7 +114,7 @@ export default function Header() {
             ? { y: 0, opacity: 1, scale: 1, pointerEvents: 'auto' as const }
             : { y: -45, opacity: 0, scale: 0.96, pointerEvents: 'none' as const }
         }
-        transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="fixed top-3 sm:top-4 md:top-5 inset-x-0 z-40 flex flex-col items-center px-4 sm:px-6 md:px-8"
       >
         <nav
@@ -180,7 +180,7 @@ export default function Header() {
             {/* Mobile Menu Button on Header */}
             <button
               type="button"
-              className="md:hidden flex flex-col justify-center items-center w-9 h-9 space-y-1.5 z-40 relative rounded-full border border-white/10 bg-white/5 active:scale-95 transition-transform"
+              className="md:hidden flex flex-col justify-center items-center w-9 h-9 space-y-1.5 z-40 relative rounded-full border border-white/10 bg-white/5 active:scale-95 transition-transform cursor-pointer"
               aria-label="Open Menu"
               onClick={handleOpenMenu}
             >
@@ -199,7 +199,7 @@ export default function Header() {
             ? { y: 0, opacity: 1, scale: 1, pointerEvents: 'auto' as const }
             : { y: -30, opacity: 0, scale: 0.9, pointerEvents: 'none' as const }
         }
-        transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className="fixed top-4 md:top-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
       >
         <button
@@ -247,11 +247,11 @@ export default function Header() {
                 x: '-50%',
                 y: '-50%',
                 scale: 0,
-                transition: { duration: 0.42, ease: [0.32, 0, 0.67, 0] },
+                transition: { duration: 0.75, ease: [0.76, 0, 0.24, 1] },
               }}
               transition={{
-                duration: 0.55,
-                ease: [0.16, 1, 0.3, 1],
+                duration: 0.85,
+                ease: [0.76, 0, 0.24, 1],
               }}
             />
 
@@ -268,21 +268,21 @@ export default function Header() {
                 pointerEvents: 'none',
                 transformOrigin: 'center center',
               }}
-              initial={{ x: '-50%', y: '-50%', scale: 0, opacity: 1 }}
+              initial={{ x: '-50%', y: '-50%', scale: 0, opacity: 0.9 }}
               animate={{ x: '-50%', y: '-50%', scale: 2.8, opacity: 0 }}
-              exit={{ opacity: 0, transition: { duration: 0.15 } }}
+              exit={{ opacity: 0, transition: { duration: 0.25 } }}
               transition={{
-                duration: 0.65,
-                ease: [0.16, 1, 0.3, 1],
+                duration: 0.95,
+                ease: [0.76, 0, 0.24, 1],
               }}
             />
 
             {/* 3. Foreground Overlay Content */}
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8, transition: { duration: 0.18 } }}
-              transition={{ duration: 0.32, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0.35, ease: [0.76, 0, 0.24, 1] } }}
+              transition={{ duration: 0.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
               className="relative z-10 w-full h-full flex flex-col justify-between p-6 sm:p-10 md:p-14 lg:p-16 text-[#e5e2e1] overflow-y-auto"
             >
               {/* Ambient Background Glows */}
@@ -290,7 +290,13 @@ export default function Header() {
               <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[radial-gradient(circle,rgba(34,197,94,0.05)_0%,transparent_70%)] blur-[100px] pointer-events-none -z-10" />
 
               {/* Overlay Top Bar (Logo, Language Switcher, CTA, Close Button) */}
-              <div className="flex items-center justify-between w-full max-w-7xl mx-auto shrink-0 pb-6 border-b border-white/5">
+              <motion.div
+                initial={{ opacity: 0, y: -15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10, transition: { duration: 0.25 } }}
+                transition={{ duration: 0.55, delay: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                className="flex items-center justify-between w-full max-w-7xl mx-auto shrink-0 pb-6 border-b border-white/5"
+              >
                 {/* Logo */}
                 <Link
                   href="/"
@@ -346,14 +352,20 @@ export default function Header() {
                     <X size={20} className="group-hover:rotate-90 transition-transform duration-300" />
                   </button>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Overlay Center / Main Navigation Area */}
               <div className="w-full max-w-7xl mx-auto my-auto py-12 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-12 lg:gap-20">
                 {/* Left Column: Vertical Tag + Giant Typographic Links */}
                 <div className="flex items-start gap-8 sm:gap-12 md:gap-16 w-full lg:w-auto">
                   {/* Vertical "MENU" text rotated like in Baunfire */}
-                  <div className="hidden sm:flex flex-col items-center pt-3 select-none">
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0, transition: { duration: 0.2 } }}
+                    transition={{ delay: 0.35, duration: 0.6 }}
+                    className="hidden sm:flex flex-col items-center pt-3 select-none"
+                  >
                     <span
                       className="font-headline text-[11px] uppercase tracking-[0.4em] text-[#e5e2e1]/30 font-bold"
                       style={{
@@ -363,7 +375,7 @@ export default function Header() {
                     >
                       {t('menu')}
                     </span>
-                  </div>
+                  </motion.div>
 
                   {/* Giant Typographic Menu Items */}
                   <nav className="flex flex-col gap-3 sm:gap-5 md:gap-6 w-full">
@@ -375,9 +387,14 @@ export default function Header() {
                       return (
                         <motion.div
                           key={item.href}
-                          initial={{ opacity: 0, y: 20 }}
+                          initial={{ opacity: 0, y: 35 }}
                           animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.15 + idx * 0.05, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                          exit={{
+                            opacity: 0,
+                            y: 15,
+                            transition: { duration: 0.28, delay: (navItems.length - 1 - idx) * 0.03, ease: [0.76, 0, 0.24, 1] },
+                          }}
+                          transition={{ delay: 0.32 + idx * 0.07, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
                           onMouseEnter={() => setHoveredIndex(idx)}
                           onMouseLeave={() => setHoveredIndex(null)}
                           className="relative"
@@ -385,7 +402,7 @@ export default function Header() {
                           <Link
                             href={item.href}
                             onClick={() => setIsMenuOpen(false)}
-                            className="group inline-flex items-baseline gap-4 sm:gap-6 py-1 transition-all duration-300"
+                            className="group inline-flex items-baseline gap-4 sm:gap-6 py-1 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
                             style={{
                               transform: isHovered
                                 ? isRtl
@@ -438,9 +455,10 @@ export default function Header() {
 
                 {/* Right Column: Contact & Agency Info (Matching Baunfire Reference) */}
                 <motion.div
-                  initial={{ opacity: 0, y: 25 }}
+                  initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                  exit={{ opacity: 0, y: 10, transition: { duration: 0.28, ease: [0.76, 0, 0.24, 1] } }}
+                  transition={{ delay: 0.5, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
                   className="flex flex-col gap-8 max-w-sm w-full pt-8 lg:pt-0 border-t lg:border-t-0 border-white/5"
                 >
                   <div>
@@ -498,12 +516,18 @@ export default function Header() {
               </div>
 
               {/* Overlay Bottom Footer */}
-              <div className="w-full max-w-7xl mx-auto shrink-0 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-headline text-[#e5e2e1]/40">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, transition: { duration: 0.25 } }}
+                transition={{ delay: 0.6, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                className="w-full max-w-7xl mx-auto shrink-0 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-headline text-[#e5e2e1]/40"
+              >
                 <span>© {new Date().getFullYear()} Sirad Agency. All rights reserved.</span>
                 <span className="text-[#B6FF33]/80 font-bold uppercase tracking-wider">
                   Crafted with Precision ✦ Sirad
                 </span>
-              </div>
+              </motion.div>
             </motion.div>
           </div>
         )}
